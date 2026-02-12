@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "179302010944",
+    "project_id": "projeto-02-43d24",
+    "storage_bucket": "projeto-02-43d24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:179302010944:android:aadd69e5bdd342c8054fa5",
+        "android_client_info": {
+          "package_name": "com.jefferson.antenas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "179302010944-kbq06ghk8tmhtvu39k3n8gcebvko4cv9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jefferson.antenas",
+            "certificate_hash": "749e250f8c2d860b6d78ef78b68180e2508afb66"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvqxtashVv-58RKlHi3F-_4GpxyQyEg9Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

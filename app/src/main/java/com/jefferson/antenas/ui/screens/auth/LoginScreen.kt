@@ -45,6 +45,8 @@ fun LoginScreen(
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var showErrorToast by rememberSaveable { mutableStateOf(false) }
     var errorMessage by rememberSaveable { mutableStateOf("") }
+    var showSuccessToast by rememberSaveable { mutableStateOf(false) }
+    var successMessage by rememberSaveable { mutableStateOf("") }
 
     val authState by viewModel.authState.collectAsState()
 
@@ -64,6 +66,16 @@ fun LoginScreen(
 
             delay(3000)
             showErrorToast = false
+        }
+    }
+
+    LaunchedEffect(authState.passwordResetSent) {
+        if (authState.passwordResetSent) {
+            successMessage = "Email de redefinição enviado! Verifique sua caixa de entrada."
+            showSuccessToast = true
+            viewModel.clearPasswordResetSent()
+            delay(3000)
+            showSuccessToast = false
         }
     }
 
@@ -140,7 +152,16 @@ fun LoginScreen(
                 enabled = !authState.isLoading
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                TextButton(
+                    onClick = { viewModel.sendPasswordReset(email) },
+                    enabled = !authState.isLoading
+                ) {
+                    Text("Esqueci minha senha?", color = SignalOrange, fontSize = 13.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // ✅ Botão de Entrar
             Button(
@@ -199,6 +220,13 @@ fun LoginScreen(
             visible = showErrorToast,
             message = errorMessage,
             type = ToastType.ERROR,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+
+        CustomToast(
+            visible = showSuccessToast,
+            message = successMessage,
+            type = ToastType.SUCCESS,
             modifier = Modifier.align(Alignment.TopCenter)
         )
     }

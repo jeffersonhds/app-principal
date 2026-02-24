@@ -27,7 +27,9 @@ import javax.inject.Inject
 
 data class CheckoutUiState(
     val name: String = "",
+    val cep: String = "",
     val address: String = "",
+    val neighborhood: String = "",
     val city: String = "",
     val phoneNumber: String = "",
     val isLoading: Boolean = false,
@@ -56,7 +58,9 @@ class CheckoutViewModel @Inject constructor(
         )
 
     fun onNameChange(newValue: String) = _uiState.update { it.copy(name = newValue) }
+    fun onCepChange(newValue: String) = _uiState.update { it.copy(cep = newValue) }
     fun onAddressChange(newValue: String) = _uiState.update { it.copy(address = newValue) }
+    fun onNeighborhoodChange(newValue: String) = _uiState.update { it.copy(neighborhood = newValue) }
     fun onCityChange(newValue: String) = _uiState.update { it.copy(city = newValue) }
     fun onPhoneChange(newValue: String) = _uiState.update { it.copy(phoneNumber = newValue) }
 

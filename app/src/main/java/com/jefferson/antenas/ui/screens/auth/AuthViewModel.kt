@@ -20,7 +20,8 @@ import javax.inject.Inject
 data class AuthState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isLoginSuccessful: Boolean = false
+    val isLoginSuccessful: Boolean = false,
+    val passwordResetSent: Boolean = false
 )
 
 @HiltViewModel
@@ -224,5 +225,24 @@ class AuthViewModel @Inject constructor(
 
     fun clearError() {
         _authState.update { it.copy(error = null) }
+    }
+
+    fun sendPasswordReset(email: String) {
+        if (email.isBlank()) {
+            _authState.update { it.copy(error = "Digite seu email para redefinir a senha.") }
+            return
+        }
+        viewModelScope.launch {
+            try {
+                auth.sendPasswordResetEmail(email).await()
+                _authState.update { it.copy(passwordResetSent = true) }
+            } catch (e: Exception) {
+                _authState.update { it.copy(error = e.message ?: "Erro ao enviar email.") }
+            }
+        }
+    }
+
+    fun clearPasswordResetSent() {
+        _authState.update { it.copy(passwordResetSent = false) }
     }
 }

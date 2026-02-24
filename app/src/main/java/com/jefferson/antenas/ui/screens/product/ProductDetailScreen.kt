@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.jefferson.antenas.ui.componets.ModernSuccessToast
 import com.jefferson.antenas.ui.componets.TopAppBarCustom
 import com.jefferson.antenas.ui.theme.*
@@ -109,13 +109,36 @@ fun ProductDetailScreen(
                                 .height(300.dp)
                                 .background(MidnightBlueCard)
                         ) {
-                            AsyncImage(
+                            SubcomposeAsyncImage(
                                 model = product.imageUrl,
                                 contentDescription = product.name,
                                 contentScale = ContentScale.Fit,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(16.dp)
+                                    .padding(16.dp),
+                                loading = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            color = SignalOrange,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                },
+                                error = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Imagem não disponível",
+                                            color = TextSecondary.copy(alpha = 0.6f),
+                                            fontSize = 13.sp
+                                        )
+                                    }
+                                }
                             )
                         }
                         Column(

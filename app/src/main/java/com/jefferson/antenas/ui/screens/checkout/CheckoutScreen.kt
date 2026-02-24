@@ -123,9 +123,24 @@ fun CheckoutScreen(
                 )
 
                 CheckoutTextField(
+                    value = uiState.cep,
+                    onValueChange = viewModel::onCepChange,
+                    label = "CEP",
+                    icon = Icons.Default.Place,
+                    keyboardType = KeyboardType.Number
+                )
+
+                CheckoutTextField(
                     value = uiState.address,
                     onValueChange = viewModel::onAddressChange,
                     label = "Endereço (Rua e Número)",
+                    icon = Icons.Default.Place
+                )
+
+                CheckoutTextField(
+                    value = uiState.neighborhood,
+                    onValueChange = viewModel::onNeighborhoodChange,
+                    label = "Bairro",
                     icon = Icons.Default.Place
                 )
 

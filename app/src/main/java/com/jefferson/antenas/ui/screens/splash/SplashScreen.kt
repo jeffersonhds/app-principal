@@ -59,8 +59,8 @@ fun SplashScreen(
             )
         }
 
-        // Tempo total que a Splash fica na tela (3.5 segundos)
-        delay(4000)
+        // Tempo total que a Splash fica na tela (2.5 segundos)
+        delay(2500)
         onSplashFinished()
     }
 

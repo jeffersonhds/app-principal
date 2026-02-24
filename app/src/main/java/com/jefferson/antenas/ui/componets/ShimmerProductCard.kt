@@ -26,7 +26,7 @@ fun ShimmerProductCard(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .background(Color.Gray)
+                    .background(Color(0xFF2A3544))
             )
 
             Column(
@@ -37,7 +37,7 @@ fun ShimmerProductCard(modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
                         .height(24.dp)
-                        .background(Color.Gray)
+                        .background(Color(0xFF2A3544))
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -47,7 +47,7 @@ fun ShimmerProductCard(modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .fillMaxWidth(0.4f)
                         .height(20.dp)
-                        .background(Color.Gray)
+                        .background(Color(0xFF2A3544))
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -58,7 +58,7 @@ fun ShimmerProductCard(modifier: Modifier = Modifier) {
                         .fillMaxWidth()
                         .height(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Gray)
+                        .background(Color(0xFF2A3544))
                 )
             }
         }

@@ -1,6 +1,5 @@
 package com.jefferson.antenas.ui.screens.auth
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -16,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -27,12 +25,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.jefferson.antenas.ui.componets.CustomToast
+import com.jefferson.antenas.ui.componets.ToastType
 import com.jefferson.antenas.ui.theme.MidnightBlueStart
 import com.jefferson.antenas.ui.theme.SignalOrange
 import com.jefferson.antenas.ui.theme.TextPrimary
 import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.ErrorRed
+import com.jefferson.antenas.utils.ErrorMessageHandler
 import com.jefferson.antenas.utils.ValidationUtils
+import kotlinx.coroutines.delay
 
 @Composable
 fun SignUpScreen(
@@ -47,25 +49,28 @@ fun SignUpScreen(
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var showConfirmPassword by rememberSaveable { mutableStateOf(false) }
+    var showErrorToast by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
 
     val authState by viewModel.authState.collectAsState()
-    val context = LocalContext.current
 
-    // Observa o estado de sucesso do cadastro para navegar
     LaunchedEffect(authState.isLoginSuccessful) {
         if (authState.isLoginSuccessful) {
             onSignUpSuccess()
         }
     }
 
-    // Observa o estado de erro para mostrar um Toast
     LaunchedEffect(authState.error) {
         authState.error?.let {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            errorMessage = ErrorMessageHandler.tratarErro(Exception(it))
+            showErrorToast = true
             viewModel.clearError()
+            delay(3000)
+            showErrorToast = false
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -248,5 +253,13 @@ fun SignUpScreen(
             },
             style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
         )
+    }
+
+    CustomToast(
+        visible = showErrorToast,
+        message = errorMessage,
+        type = ToastType.ERROR,
+        modifier = Modifier.align(Alignment.TopCenter)
+    )
     }
 }

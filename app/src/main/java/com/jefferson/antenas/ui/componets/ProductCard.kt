@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -181,29 +180,6 @@ fun ProductCard(
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
-
-                // ✅ RATING (estrelas fictícias - adapte conforme necessário)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(5) { i ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = if (i < 4) SignalOrange else Color.Gray.copy(alpha = 0.3f),
-                            modifier = Modifier.size(14.sp.value.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "(4.0)",
-                        fontSize = 11.sp,
-                        color = TextSecondary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 // ✅ PREÇOS (com desconto tachado)
                 if (product.discount != null && product.discount > 0) {

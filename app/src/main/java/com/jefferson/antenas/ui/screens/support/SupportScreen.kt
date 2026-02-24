@@ -68,7 +68,7 @@ fun HelpTab() {
     // --- LÓGICA DO WHATSAPP ---
     val context = LocalContext.current
     // IMPORTANTE: Substitua pelo seu número de telefone com código do país (ex: 55119XXXXXXXX)
-    val supportPhoneNumber = "55SEUNUMEROAQUI"
+    val supportPhoneNumber = "5565992895296"
     val defaultMessage = "Olá! Vim pelo app Jefferson Antenas e preciso de ajuda."
 
     Text("Solucionador de Problemas", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)

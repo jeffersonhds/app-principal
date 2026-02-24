@@ -28,11 +28,10 @@ object NetworkModule {
 
         return OkHttpClient.Builder()
             .addInterceptor(logging)
-            // ✅ CORRIGIDO: Timeout aumentado para 30s — servidor no Render hiberna e pode
-            // levar até 30-60s para acordar no primeiro acesso
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            // ✅ Timeout de 60s — servidor no Railway hiberna e pode levar até 60s para acordar
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 

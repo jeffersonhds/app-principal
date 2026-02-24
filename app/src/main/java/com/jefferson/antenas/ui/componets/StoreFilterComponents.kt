@@ -1,8 +1,6 @@
 package com.jefferson.antenas.ui.componets
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -13,14 +11,41 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jefferson.antenas.ui.theme.*
 
-// ✅ HEADER DA LOJA COM BUSCA E FILTROS
+// ✅ BARRA DE BUSCA COMPACTA (estilo marketplace)
+@Composable
+fun StoreSearchBar(
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchChange,
+        placeholder = { Text("Buscar produtos...", color = TextSecondary, fontSize = 14.sp) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = SignalOrange) },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = CardGradientStart,
+            unfocusedContainerColor = CardGradientStart,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
+            focusedBorderColor = SignalOrange,
+            unfocusedBorderColor = Color.Transparent
+        ),
+        shape = RoundedCornerShape(26.dp),
+        singleLine = true
+    )
+}
+
+// ✅ HEADER DA LOJA COM BUSCA (mantido para compatibilidade)
 @Composable
 fun StoreHeader(
     searchQuery: String,
@@ -34,7 +59,6 @@ fun StoreHeader(
             .background(MidnightBlueStart)
             .padding(16.dp)
     ) {
-        // Título
         Text(
             text = "Loja Completa",
             fontSize = 28.sp,
@@ -42,16 +66,12 @@ fun StoreHeader(
             color = TextPrimary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-
-        // Barra de Busca
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
             placeholder = { Text("Buscar produtos...", color = TextSecondary) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = SignalOrange) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
+            modifier = Modifier.fillMaxWidth().height(48.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = CardGradientStart,
                 unfocusedContainerColor = CardGradientStart,
@@ -66,7 +86,7 @@ fun StoreHeader(
     }
 }
 
-// ✅ FILTROS HORIZONTAIS
+// ✅ FILTROS HORIZONTAIS — chips com scroll edge-to-edge
 data class FilterOption(
     val id: String,
     val label: String,
@@ -83,10 +103,10 @@ fun HorizontalFilters(
     LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Botão "Limpar"
         item {
             FilterChip(
                 selected = selectedFilter == null,
@@ -100,8 +120,6 @@ fun HorizontalFilters(
                 )
             )
         }
-
-        // Filtros
         items(filters) { filter ->
             val isSelected = selectedFilter == filter.id
             FilterChip(
@@ -128,6 +146,74 @@ data class SortOption(
     val label: String
 )
 
+// ✅ LINHA COMPACTA: contagem de resultados + dropdown de ordenação
+@Composable
+fun SortAndResultsRow(
+    filteredCount: Int,
+    sortOptions: List<SortOption>,
+    selectedSort: String,
+    onSortSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "$filteredCount produto${if (filteredCount != 1) "s" else ""}",
+            fontSize = 12.sp,
+            color = TextSecondary
+        )
+
+        Box {
+            OutlinedButton(
+                onClick = { expanded = true },
+                modifier = Modifier.height(32.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = SignalOrange),
+                border = androidx.compose.foundation.BorderStroke(1.dp, SignalOrange),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
+            ) {
+                Icon(Icons.Default.Sort, null, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    sortOptions.find { it.id == selectedSort }?.label ?: "Ordenar",
+                    fontSize = 11.sp
+                )
+                Icon(Icons.Default.ArrowDropDown, null, modifier = Modifier.size(14.dp))
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(CardGradientStart)
+            ) {
+                sortOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                option.label,
+                                color = if (option.id == selectedSort) SignalOrange else TextPrimary,
+                                fontWeight = if (option.id == selectedSort) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        onClick = {
+                            onSortSelected(option.id)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ✅ DROPDOWN COMPLETO (mantido para compatibilidade)
 @Composable
 fun SortDropdown(
     sortOptions: List<SortOption>,
@@ -140,32 +226,25 @@ fun SortDropdown(
     Box(modifier = modifier.padding(horizontal = 16.dp)) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = SignalOrange
-            ),
+            modifier = Modifier.fillMaxWidth().height(40.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = SignalOrange),
             border = androidx.compose.foundation.BorderStroke(1.dp, SignalOrange),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Icon(Icons.Default.Sort, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(8.dp))
+            Icon(Icons.Default.Sort, null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(8.dp))
             Text(
                 "Ordenar por: ${sortOptions.find { it.id == selectedSort }?.label ?: "Padrão"}",
                 fontSize = 12.sp,
                 maxLines = 1
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.weight(1f))
+            Icon(Icons.Default.ArrowDropDown, null, modifier = Modifier.size(16.dp))
         }
-
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .background(CardGradientStart)
+            modifier = Modifier.fillMaxWidth(0.9f).background(CardGradientStart)
         ) {
             sortOptions.forEach { option ->
                 DropdownMenuItem(
@@ -176,17 +255,14 @@ fun SortDropdown(
                             fontWeight = if (option.id == selectedSort) FontWeight.Bold else FontWeight.Normal
                         )
                     },
-                    onClick = {
-                        onSortSelected(option.id)
-                        expanded = false
-                    }
+                    onClick = { onSortSelected(option.id); expanded = false }
                 )
             }
         }
     }
 }
 
-// ✅ INDICADOR DE RESULTADOS
+// ✅ INDICADOR DE RESULTADOS (mantido para compatibilidade)
 @Composable
 fun ResultsInfo(
     totalProducts: Int,
@@ -194,11 +270,8 @@ fun ResultsInfo(
     modifier: Modifier = Modifier
 ) {
     if (totalProducts == 0) return
-
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -210,15 +283,11 @@ fun ResultsInfo(
     }
 }
 
-// ✅ EMPTY STATE (quando não tem produtos)
+// ✅ EMPTY STATE
 @Composable
-fun EmptyStoreState(
-    modifier: Modifier = Modifier
-) {
+fun EmptyStoreState(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(32.dp),
+        modifier = modifier.fillMaxSize().padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -228,20 +297,11 @@ fun EmptyStoreState(
             tint = SignalOrange,
             modifier = Modifier.size(64.dp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(Modifier.height(16.dp))
+        Text("Nenhum Produto Encontrado", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+        Spacer(Modifier.height(8.dp))
         Text(
-            text = "Nenhum Produto Encontrado",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Tente ajustar seus filtros ou faça uma nova busca",
+            "Tente ajustar seus filtros ou faça uma nova busca",
             fontSize = 14.sp,
             color = TextSecondary,
             modifier = Modifier.padding(horizontal = 16.dp)

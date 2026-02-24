@@ -2,13 +2,8 @@ package com.jefferson.antenas.ui.screens.store
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,13 +27,11 @@ fun StoreScreen(
     val cartCount by viewModel.cartItemCount.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // ✅ ESTADOS DA LOJA
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedSort by remember { mutableStateOf("popular") }
     var showToast by remember { mutableStateOf(false) }
 
-    // ✅ AUTO-HIDE TOAST
     if (showToast) {
         LaunchedEffect(showToast) {
             delay(2000)
@@ -46,23 +39,17 @@ fun StoreScreen(
         }
     }
 
-    // ✅ EXTRAIR CATEGORIAS DOS PRODUTOS
     val categories = remember(products) {
-        products
-            .mapNotNull { it.category }
-            .distinct()
-            .sorted()
+        products.mapNotNull { it.category }.distinct().sorted()
     }
 
     val categoryFilters = remember(categories) {
         categories.map { FilterOption(it, it) }
     }
 
-    // ✅ FILTRAR E ORDENAR PRODUTOS
     val filteredProducts = remember(products, searchQuery, selectedCategory, selectedSort) {
         var filtered = products
 
-        // Filtro por busca
         if (searchQuery.isNotBlank()) {
             filtered = filtered.filter {
                 it.name.contains(searchQuery, ignoreCase = true) ||
@@ -70,18 +57,16 @@ fun StoreScreen(
             }
         }
 
-        // Filtro por categoria
         if (selectedCategory != null) {
             filtered = filtered.filter { it.category == selectedCategory }
         }
 
-        // Ordenação
         filtered = when (selectedSort) {
             "preco_baixo" -> filtered.sortedBy { it.getDiscountedPrice() }
             "preco_alto" -> filtered.sortedByDescending { it.getDiscountedPrice() }
             "novo" -> filtered.sortedByDescending { it.isNew }
             "desconto" -> filtered.sortedByDescending { it.discount ?: 0 }
-            else -> filtered // "popular" (padrão)
+            else -> filtered
         }
 
         filtered
@@ -108,123 +93,138 @@ fun StoreScreen(
                 )
             }
         ) { padding ->
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(MidnightBlueStart)
+                    .background(MidnightBlueStart),
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                // ✅ PROMOÇÃO NO TOPO
-                PromotionBanner(text = "Até 25% de desconto em produtos selecionados!")
 
-                // ✅ STATS DA LOJA
-                StoreStats(
-                    totalProducts = products.size,
-                    totalCategories = categories.size
-                )
-
-                // ✅ FRETE GRÁTIS
-                FreeShippingBanner()
-
-                // ✅ HEADER COM BUSCA
-                StoreHeader(
-                    searchQuery = searchQuery,
-                    onSearchChange = { searchQuery = it },
-                    onSearchClick = { }
-                )
-
-                // ✅ BOTÃO DE SERVIÇOS
-                TextButton(
-                    onClick = onServicesClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Build, contentDescription = "Serviços", tint = SignalOrange)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Conheça nossos serviços de instalação", color = TextPrimary)
-                        Spacer(modifier = Modifier.weight(1f))
-                        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = SignalOrange)
-                    }
-                }
-
-                // ✅ FILTROS HORIZONTAIS
-                if (categories.isNotEmpty()) {
-                    HorizontalFilters(
-                        filters = categoryFilters,
-                        selectedFilter = selectedCategory,
-                        onFilterSelected = { selectedCategory = it }
+                // ── Barra de busca ──────────────────────────────────────────
+                item {
+                    StoreSearchBar(
+                        searchQuery = searchQuery,
+                        onSearchChange = { searchQuery = it },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
                 }
 
-                // ✅ INDICADOR DE FILTROS ATIVOS
-                ActiveFiltersIndicator(
-                    hasActiveFilters = selectedCategory != null || searchQuery.isNotBlank(),
-                    filterCount = (if (selectedCategory != null) 1 else 0) + (if (searchQuery.isNotBlank()) 1 else 0),
-                    onClearFilters = {
-                        selectedCategory = null
-                        searchQuery = ""
+                // ── Carrossel de promoções ──────────────────────────────────
+                item {
+                    PromoCarousel()
+                }
+
+                // ── Benefícios (3 chips) ────────────────────────────────────
+                item {
+                    BenefitsRow()
+                }
+
+                // ── Filtros de categoria ────────────────────────────────────
+                if (categories.isNotEmpty()) {
+                    item {
+                        HorizontalFilters(
+                            filters = categoryFilters,
+                            selectedFilter = selectedCategory,
+                            onFilterSelected = { selectedCategory = it }
+                        )
                     }
-                )
+                }
 
-                // ✅ ORDENAÇÃO
-                SortDropdown(
-                    sortOptions = sortOptions,
-                    selectedSort = selectedSort,
-                    onSortSelected = { selectedSort = it }
-                )
+                // ── Indicador de filtros ativos ─────────────────────────────
+                if (selectedCategory != null || searchQuery.isNotBlank()) {
+                    item {
+                        ActiveFiltersIndicator(
+                            hasActiveFilters = true,
+                            filterCount = (if (selectedCategory != null) 1 else 0) +
+                                    (if (searchQuery.isNotBlank()) 1 else 0),
+                            onClearFilters = {
+                                selectedCategory = null
+                                searchQuery = ""
+                            }
+                        )
+                    }
+                }
 
-                // ✅ INFO DE RESULTADOS
-                ResultsInfo(
-                    totalProducts = products.size,
-                    filteredProducts = filteredProducts.size
-                )
+                // ── Serviços (card discreto) ────────────────────────────────
+                item {
+                    ServicesLinkCard(onClick = onServicesClick)
+                }
 
-                // ✅ GRID DE PRODUTOS
-                if (isLoading) {
-                    // Loading State
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(8) {
-                            ShimmerProductCard()
+                // ── Contagem + ordenação ────────────────────────────────────
+                item {
+                    SortAndResultsRow(
+                        filteredCount = filteredProducts.size,
+                        sortOptions = sortOptions,
+                        selectedSort = selectedSort,
+                        onSortSelected = { selectedSort = it }
+                    )
+                }
+
+                // ── Grid de produtos ────────────────────────────────────────
+                when {
+                    isLoading -> {
+                        items(4) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                ShimmerProductCard(modifier = Modifier.weight(1f))
+                                ShimmerProductCard(modifier = Modifier.weight(1f))
+                            }
                         }
                     }
-                } else if (filteredProducts.isEmpty()) {
-                    // Empty State
-                    EmptyStoreState(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                    )
-                } else {
-                    // Produtos carregados
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(filteredProducts) { product ->
-                            ProductCard(
-                                product = product,
-                                onAddToCart = { productToAdd ->
-                                    viewModel.addToCart(productToAdd)
-                                    showToast = true
-                                },
-                                onClick = { onProductClick(product.id) }
+
+                    filteredProducts.isEmpty() -> {
+                        item {
+                            EmptyStoreState(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp)
                             )
+                        }
+                    }
+
+                    else -> {
+                        items(filteredProducts.chunked(2)) { rowProducts ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                ProductCard(
+                                    product = rowProducts[0],
+                                    onAddToCart = {
+                                        viewModel.addToCart(it)
+                                        showToast = true
+                                    },
+                                    onClick = { onProductClick(rowProducts[0].id) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (rowProducts.size > 1) {
+                                    ProductCard(
+                                        product = rowProducts[1],
+                                        onAddToCart = {
+                                            viewModel.addToCart(it)
+                                            showToast = true
+                                        },
+                                        onClick = { onProductClick(rowProducts[1].id) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        // ✅ TOAST DE SUCESSO
+        // ── Toast de confirmação ────────────────────────────────────────────
         ModernSuccessToast(
             visible = showToast,
             message = "Item adicionado!",

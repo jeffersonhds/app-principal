@@ -7,6 +7,10 @@ import com.jefferson.antenas.data.model.Product
 import com.jefferson.antenas.data.remote.JeffersonApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import retrofit2.HttpException
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
@@ -36,27 +40,40 @@ class ProductRepositoryImpl @Inject constructor(
 
         } catch (e: Exception) {
             // ❌ API falhou, tenta buscar do cache local
-            Log.e("ProductRepository", "❌ Erro na API: ${e.message}")
+            val errorMsg = apiErrorMessage(e)
+            Log.e("ProductRepository", "❌ Erro na API: $errorMsg")
             Log.d("ProductRepository", "📦 Tentando carregar do cache local...")
 
             return try {
-                // ✅ CORRIGIDO: usar .first() em vez de .collect {}
-                // .collect{} nunca termina pois Flow é infinito
-                // .first() pega o valor atual e encerra imediatamente
                 val cachedList = productDao.getAllProducts().first()
 
                 if (cachedList.isNotEmpty()) {
                     Log.d("ProductRepository", "✅ ${cachedList.size} produtos carregados do cache")
                     Result.success(cachedList)
                 } else {
-                    Log.e("ProductRepository", "❌ Sem internet e sem cache")
-                    Result.failure(Exception("Sem conexão e sem dados em cache"))
+                    Log.e("ProductRepository", "❌ Sem cache disponível")
+                    Result.failure(Exception(errorMsg))
                 }
             } catch (cacheException: Exception) {
                 Log.e("ProductRepository", "❌ Erro ao acessar cache: ${cacheException.message}")
-                Result.failure(cacheException)
+                Result.failure(Exception(errorMsg))
             }
         }
+    }
+
+    private fun apiErrorMessage(e: Exception): String = when {
+        e is HttpException && e.code() in 500..599 ->
+            "Erro no servidor (${e.code()}). Tente novamente em instantes."
+        e is HttpException ->
+            "Erro na requisição (${e.code()}). Tente novamente."
+        e is SocketTimeoutException ->
+            "Servidor demorou muito para responder. Tente novamente."
+        e is UnknownHostException ->
+            "Sem conexão com a internet. Verifique sua rede."
+        e is IOException ->
+            "Sem conexão com a internet. Verifique sua rede."
+        else ->
+            "Erro inesperado: ${e.message}"
     }
 
     // ✅ BUSCA UM PRODUTO ESPECIFICO

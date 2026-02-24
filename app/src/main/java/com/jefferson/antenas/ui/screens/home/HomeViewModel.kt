@@ -69,7 +69,7 @@ class HomeViewModel @Inject constructor(
                 Log.e("HomeViewModel", "❌ Falha ao carregar produtos: ${error.message}")
                 _products.value = emptyList()
                 _isLoading.value = false
-                _errorMessage.value = "Sem conexão. Verifique sua internet e tente novamente."
+                _errorMessage.value = error.message ?: "Erro desconhecido. Tente novamente."
             }
         }
     }

@@ -16,7 +16,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://jefferson-antenas-server.onrender.com"
+    private const val BASE_URL = "https://web-production-d763f.up.railway.app/" +
+            ""
 
     @Provides
     @Singleton
@@ -27,10 +28,11 @@ object NetworkModule {
 
         return OkHttpClient.Builder()
             .addInterceptor(logging)
-            // ✅ OTIMIZADO: Timeouts reduzidos para detecção rápida
-            .connectTimeout(10, TimeUnit.SECONDS)  // 10s em vez de 30s
-            .readTimeout(10, TimeUnit.SECONDS)     // 10s em vez de 30s
-            .writeTimeout(10, TimeUnit.SECONDS)    // Adicionado para upload
+            // ✅ CORRIGIDO: Timeout aumentado para 30s — servidor no Render hiberna e pode
+            // levar até 30-60s para acordar no primeiro acesso
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 

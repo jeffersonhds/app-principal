@@ -6,7 +6,7 @@ import com.jefferson.antenas.data.model.Banner
 import com.jefferson.antenas.data.model.Product
 import com.jefferson.antenas.data.remote.JeffersonApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
@@ -33,18 +33,17 @@ class ProductRepositoryImpl @Inject constructor(
             Log.d("ProductRepository", "✅ Produtos salvos no banco")
 
             Result.success(productsFromApi)
+
         } catch (e: Exception) {
             // ❌ API falhou, tenta buscar do cache local
             Log.e("ProductRepository", "❌ Erro na API: ${e.message}")
             Log.d("ProductRepository", "📦 Tentando carregar do cache local...")
 
             return try {
-                val localProducts = productDao.getAllProducts()
-                // Converte Flow em List (pega o valor primeiro)
-                var cachedList = emptyList<Product>()
-                localProducts.collect { products ->
-                    cachedList = products
-                }
+                // ✅ CORRIGIDO: usar .first() em vez de .collect {}
+                // .collect{} nunca termina pois Flow é infinito
+                // .first() pega o valor atual e encerra imediatamente
+                val cachedList = productDao.getAllProducts().first()
 
                 if (cachedList.isNotEmpty()) {
                     Log.d("ProductRepository", "✅ ${cachedList.size} produtos carregados do cache")
@@ -53,9 +52,9 @@ class ProductRepositoryImpl @Inject constructor(
                     Log.e("ProductRepository", "❌ Sem internet e sem cache")
                     Result.failure(Exception("Sem conexão e sem dados em cache"))
                 }
-            } catch (e: Exception) {
-                Log.e("ProductRepository", "❌ Erro ao acessar cache: ${e.message}")
-                Result.failure(e)
+            } catch (cacheException: Exception) {
+                Log.e("ProductRepository", "❌ Erro ao acessar cache: ${cacheException.message}")
+                Result.failure(cacheException)
             }
         }
     }
@@ -90,8 +89,8 @@ class ProductRepositoryImpl @Inject constructor(
                 } else {
                     Result.failure(Exception("Produto não encontrado"))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
+            } catch (cacheException: Exception) {
+                Result.failure(cacheException)
             }
         }
     }
@@ -107,22 +106,22 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
-    // ✅ NOVO: Retorna produtos como Flow (para observar mudanças)
+    // ✅ Retorna produtos como Flow (para observar mudanças em tempo real)
     fun getProductsAsFlow(): Flow<List<Product>> {
         return productDao.getAllProducts()
     }
 
-    // ✅ NOVO: Retorna produtos com desconto
+    // ✅ Retorna produtos com desconto
     fun getProductsWithDiscount(): Flow<List<Product>> {
         return productDao.getProductsWithDiscount()
     }
 
-    // ✅ NOVO: Retorna produtos novos
+    // ✅ Retorna produtos novos
     fun getNewProducts(): Flow<List<Product>> {
         return productDao.getNewProducts()
     }
 
-    // ✅ NOVO: Limpar cache manualmente
+    // ✅ Limpar cache manualmente
     suspend fun clearCache() {
         Log.d("ProductRepository", "🗑️ Limpando cache...")
         productDao.clearAllProducts()

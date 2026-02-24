@@ -45,6 +45,8 @@ fun HomeScreen(
 ) {
     val products by viewModel.products.collectAsState()
     val cartCount by viewModel.cartItemCount.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     var showToast by remember { mutableStateOf(false) }
 
@@ -107,12 +109,39 @@ fun HomeScreen(
                     Text("Destaques", style = MaterialTheme.typography.titleLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
                 }
 
-                if (products.isEmpty()) {
-                    repeat(4) {
+                when {
+                    isLoading -> repeat(4) {
                         ShimmerProductCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     }
-                } else {
-                    products.take(4).forEach { product ->
+                    errorMessage != null -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WifiOff,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Text(
+                                text = errorMessage!!,
+                                color = TextSecondary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            Button(
+                                onClick = { viewModel.retry() },
+                                colors = ButtonDefaults.buttonColors(containerColor = SignalOrange)
+                            ) {
+                                Text("Tentar novamente", color = MidnightBlueStart)
+                            }
+                        }
+                    }
+                    else -> products.take(4).forEach { product ->
                         ProductCard(
                             product = product,
                             onAddToCart = {

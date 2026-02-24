@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jefferson.antenas.data.model.Product
 import com.jefferson.antenas.data.repository.CartRepository
-import com.jefferson.antenas.data.remote.JeffersonApi
+import com.jefferson.antenas.data.repository.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val api: JeffersonApi,
+    // ✅ CORRIGIDO: injeta o Repository em vez da API direta
+    // O Repository tem cache inteligente — se a API falhar, usa o banco local
+    private val repository: ProductRepository,
     private val cartRepository: CartRepository
 ) : ViewModel() {
 
@@ -27,33 +29,55 @@ class HomeViewModel @Inject constructor(
     private val _cartItemCount = MutableStateFlow(0)
     val cartItemCount: StateFlow<Int> = _cartItemCount.asStateFlow()
 
+    // ✅ Estado de carregamento — para mostrar shimmer enquanto busca
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // ✅ Estado de erro — para mostrar mensagem se falhar tudo
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
     init {
         Log.d("HomeViewModel", "📦 HomeViewModel inicializado")
-        val startTime = System.currentTimeMillis()
-
         fetchProducts()
         updateCartCount()
-
-        Log.d("HomeViewModel", "✅ Init concluído em ${System.currentTimeMillis() - startTime}ms")
     }
 
     private fun fetchProducts() {
         viewModelScope.launch {
-            try {
-                val startTime = System.currentTimeMillis()
-                Log.d("HomeViewModel", "🌐 Iniciando fetch de produtos...")
+            _isLoading.value = true
+            _errorMessage.value = null
 
-                val result = api.getProducts()
+            val startTime = System.currentTimeMillis()
+            Log.d("HomeViewModel", "🌐 Buscando produtos via Repository...")
 
-                val fetchTime = System.currentTimeMillis() - startTime
-                Log.d("HomeViewModel", "✅ Produtos carregados em ${fetchTime}ms - Total: ${result.size} itens")
+            // ✅ CORRIGIDO: usa o repository que tem:
+            // 1. Tentativa na API
+            // 2. Se falhar → fallback automático pro cache Room
+            // 3. Só falha de verdade se não tiver nem internet nem cache
+            val result = repository.getProducts()
 
-                _products.value = result
-            } catch (e: Exception) {
-                Log.e("HomeViewModel", "❌ ERRO ao buscar produtos: ${e.message}", e)
+            val fetchTime = System.currentTimeMillis() - startTime
+
+            result.onSuccess { products ->
+                Log.d("HomeViewModel", "✅ ${products.size} produtos carregados em ${fetchTime}ms")
+                _products.value = products
+                _isLoading.value = false
+            }
+
+            result.onFailure { error ->
+                Log.e("HomeViewModel", "❌ Falha ao carregar produtos: ${error.message}")
                 _products.value = emptyList()
+                _isLoading.value = false
+                _errorMessage.value = "Sem conexão. Verifique sua internet e tente novamente."
             }
         }
+    }
+
+    // ✅ Permite a tela chamar um novo fetch manualmente (ex: botão "Tentar novamente")
+    fun retry() {
+        Log.d("HomeViewModel", "🔄 Retry solicitado pelo usuário")
+        fetchProducts()
     }
 
     fun addToCart(product: Product) {

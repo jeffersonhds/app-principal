@@ -2,12 +2,14 @@ package com.jefferson.antenas.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 @Entity
 data class Product(
-    // O servidor manda ID numérico, mas o GSON converte para String automaticamente para facilitar a navegação
+    // O servidor retorna ID como número inteiro — FlexibleStringAdapter converte para String sem crashar
     @PrimaryKey
+    @JsonAdapter(FlexibleStringAdapter::class)
     @SerializedName("id") val id: String,
 
     @SerializedName("name") val name: String,

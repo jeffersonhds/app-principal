@@ -20,6 +20,10 @@
             "package_name": "com.jefferson.antenas",
             "certificate_hash": "749e250f8c2d860b6d78ef78b68180e2508afb66"
           }
+        },
+        {
+          "client_id": "179302010944-7rj2e9g1v1imevcq27h4n33jhku9ls99.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
@@ -29,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "179302010944-7rj2e9g1v1imevcq27h4n33jhku9ls99.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

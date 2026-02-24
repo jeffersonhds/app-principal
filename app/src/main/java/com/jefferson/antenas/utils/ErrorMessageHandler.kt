@@ -83,9 +83,9 @@ object ErrorMessageHandler {
                 "Erro no servidor. Tente novamente mais tarde."
             }
 
-            // ❌ GENÉRICO
+            // ❌ GENÉRICO (temporário: mostra erro bruto para diagnóstico)
             else -> {
-                "Erro ao processar sua solicitação. Tente novamente."
+                mensagem.ifBlank { "Erro desconhecido." }
             }
         }
     }

@@ -2,6 +2,7 @@ package com.jefferson.antenas.ui.screens.services
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -76,7 +77,7 @@ fun ServicesScreen(onBackClick: () -> Unit) { // Adicionado onBackClick para con
                             intent.data = Uri.parse(url)
                             context.startActivity(intent)
                         } catch (e: Exception) {
-                            // Lidar com erro se o WhatsApp não estiver instalado
+                            Toast.makeText(context, "WhatsApp não instalado. Instale o WhatsApp e tente novamente.", Toast.LENGTH_LONG).show()
                         }
                     }
                 }

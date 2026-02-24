@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -110,11 +111,26 @@ fun CartScreen(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Seu carrinho está vazio",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = TextTertiary
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingCart,
+                        contentDescription = null,
+                        tint = TextTertiary.copy(alpha = 0.5f),
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Seu carrinho está vazio",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextTertiary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Adicione produtos para continuar",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextTertiary.copy(alpha = 0.6f)
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -166,8 +182,16 @@ fun CartItemCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDecrease, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Remove, null, tint = TextSecondary)
+                    IconButton(
+                        onClick = onDecrease,
+                        modifier = Modifier.size(32.dp),
+                        enabled = item.quantity > 1
+                    ) {
+                        Icon(
+                            Icons.Default.Remove,
+                            null,
+                            tint = if (item.quantity > 1) TextSecondary else TextSecondary.copy(alpha = 0.3f)
+                        )
                     }
                     Text(
                         item.quantity.toString(),

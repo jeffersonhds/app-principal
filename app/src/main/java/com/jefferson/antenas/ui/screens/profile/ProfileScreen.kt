@@ -36,9 +36,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.jefferson.antenas.ui.theme.ErrorRed
 import com.jefferson.antenas.ui.theme.MidnightBlueEnd
 import com.jefferson.antenas.ui.theme.SignalOrange
 import com.jefferson.antenas.ui.theme.TextPrimary
+import com.jefferson.antenas.ui.theme.TextSecondary
 
 @Composable
 fun ProfileScreen(
@@ -64,7 +66,7 @@ fun ProfileScreen(
                 CircularProgressIndicator(color = SignalOrange)
             }
             uiState.error != null -> {
-                Text(text = uiState.error!!, color = Color.Red)
+                Text(text = uiState.error!!, color = ErrorRed)
             }
             uiState.user != null -> {
                 val user = uiState.user!!
@@ -161,6 +163,13 @@ fun ProfileScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+            else -> {
+                Text(
+                    text = "Perfil não disponível",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextSecondary
+                )
             }
         }
     }

@@ -30,6 +30,7 @@ fun StoreScreen(
 ) {
     val products by viewModel.products.collectAsState()
     val cartCount by viewModel.cartItemCount.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // ✅ ESTADOS DA LOJA
     var searchQuery by remember { mutableStateOf("") }
@@ -181,14 +182,7 @@ fun StoreScreen(
                 )
 
                 // ✅ GRID DE PRODUTOS
-                if (filteredProducts.isEmpty()) {
-                    // Empty State
-                    EmptyStoreState(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                    )
-                } else if (products.isEmpty()) {
+                if (isLoading) {
                     // Loading State
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
@@ -200,6 +194,13 @@ fun StoreScreen(
                             ShimmerProductCard()
                         }
                     }
+                } else if (filteredProducts.isEmpty()) {
+                    // Empty State
+                    EmptyStoreState(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    )
                 } else {
                     // Produtos carregados
                     LazyVerticalGrid(

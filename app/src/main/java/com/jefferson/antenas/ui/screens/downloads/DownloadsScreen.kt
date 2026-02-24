@@ -1,5 +1,6 @@
 package com.jefferson.antenas.ui.screens.downloads
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +28,7 @@ fun DownloadsScreen(onBackClick: () -> Unit) {
     )
 
     Column(modifier = Modifier.fillMaxSize().background(MidnightBlueStart)) {
-        TopAppBarCustom(title = "Downloads", onBackClick = onBackClick, showBack = false)
+        TopAppBarCustom(title = "Downloads", onBackClick = onBackClick, showBack = true)
 
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(brands.size) { index ->
@@ -37,7 +38,7 @@ fun DownloadsScreen(onBackClick: () -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = CardGradientStart),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Column(Modifier.padding(16.dp)) {
+                    Column(Modifier.padding(16.dp).animateContentSize()) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(name, color = TextPrimary, fontWeight = FontWeight.Bold)
                             Icon(if (expandedBrand == id) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = SignalOrange)

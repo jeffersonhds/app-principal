@@ -22,7 +22,9 @@ import com.jefferson.antenas.ui.screens.auth.SignUpScreen
 import com.jefferson.antenas.ui.screens.cart.CartScreen
 import com.jefferson.antenas.ui.screens.checkout.CheckoutScreen
 import com.jefferson.antenas.ui.screens.downloads.DownloadsScreen
+import com.jefferson.antenas.ui.screens.favorites.FavoritesScreen
 import com.jefferson.antenas.ui.screens.home.HomeScreen
+import com.jefferson.antenas.ui.screens.orders.OrdersScreen
 import com.jefferson.antenas.ui.screens.product.ProductDetailScreen
 import com.jefferson.antenas.ui.screens.profile.ProfileScreen
 import com.jefferson.antenas.ui.screens.search.SearchScreen
@@ -49,8 +51,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
 
-    // Adicionei "splash" na lista para esconder a barra de baixo nela
-    val hideBottomBarRoutes = listOf("splash", "login", "signup", "checkout", "product/{productId}", "cart", "search")
+    val hideBottomBarRoutes = listOf("splash", "login", "signup", "checkout", "product/{productId}", "cart", "search", "orders", "favorites")
 
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry.value?.destination?.route
@@ -102,27 +103,73 @@ fun MainScreen() {
                     onCartClick = { navController.navigate("cart") },
                     onServicesClick = { navController.navigate("services") },
                     onSearchClick = { navController.navigate("search") },
-                    onProfileClick = { navController.navigate("profile") }
+                    onProfileClick = { navController.navigate("profile") },
+                    onStoreClick = { navController.navigate("store") }
                 )
             }
-            composable("store") { StoreScreen(onProductClick = { id -> navController.navigate("product/$id") }, onCartClick = { navController.navigate("cart") }, onServicesClick = { navController.navigate("services") }, onBackClick = { navController.popBackStack() }) }
+            composable("store") {
+                StoreScreen(
+                    onProductClick = { id -> navController.navigate("product/$id") },
+                    onCartClick = { navController.navigate("cart") },
+                    onServicesClick = { navController.navigate("services") },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
             composable("services") { ServicesScreen(onBackClick = { navController.popBackStack() }) }
             composable("downloads") { DownloadsScreen(onBackClick = { navController.popBackStack() }) }
             composable("support") { SupportScreen(onBackClick = { navController.popBackStack() }) }
-            composable("profile") {
-                ProfileScreen(onLogout = {
-                    navController.navigate("login") {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                    }
-                })
+            composable("orders") {
+                OrdersScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onShopClick = { navController.navigate("store") }
+                )
             }
-            composable("search") { SearchScreen(onBackClick = { navController.popBackStack() }, onProductClick = { id -> navController.navigate("product/$id") }) }
-            composable(route = "product/{productId}", arguments = listOf(navArgument("productId") { type = NavType.StringType })) { ProductDetailScreen(onBackClick = { navController.popBackStack() }) }
-            composable("cart") { CartScreen(onBackClick = { navController.popBackStack() }, onCheckoutClick = { navController.navigate("checkout") }) }
+            composable("favorites") {
+                FavoritesScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onProductClick = { id -> navController.navigate("product/$id") },
+                    onShopClick = { navController.navigate("store") }
+                )
+            }
+            composable("profile") {
+                ProfileScreen(
+                    onLogout = {
+                        navController.navigate("login") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        }
+                    },
+                    onOrdersClick = { navController.navigate("orders") },
+                    onFavoritesClick = { navController.navigate("favorites") },
+                    onDownloadsClick = { navController.navigate("downloads") },
+                    onSupportClick = { navController.navigate("support") },
+                    onFaqClick = { navController.navigate("support") }
+                )
+            }
+            composable("search") {
+                SearchScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onProductClick = { id -> navController.navigate("product/$id") }
+                )
+            }
+            composable(
+                route = "product/{productId}",
+                arguments = listOf(navArgument("productId") { type = NavType.StringType })
+            ) {
+                ProductDetailScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable("cart") {
+                CartScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onCheckoutClick = { navController.navigate("checkout") },
+                    onGoToStore = { navController.navigate("store") }
+                )
+            }
             composable("checkout") {
                 CheckoutScreen(
                     onBackClick = { navController.popBackStack() },
-                    onOrderSuccess = { navController.navigate("home") { popUpTo("home") { inclusive = true } } }
+                    onOrderSuccess = {
+                        navController.navigate("home") { popUpTo("home") { inclusive = true } }
+                    }
                 )
             }
         }

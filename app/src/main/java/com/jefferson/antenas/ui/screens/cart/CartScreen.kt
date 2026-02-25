@@ -86,6 +86,7 @@ private val VALID_COUPONS = mapOf("JEFF10" to 0.10, "ANTENAS15" to 0.15)
 fun CartScreen(
     onBackClick: () -> Unit,
     onCheckoutClick: () -> Unit,
+    onGoToStore: () -> Unit = onBackClick,
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -223,7 +224,7 @@ fun CartScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                onGoToStore = onBackClick
+                onGoToStore = onGoToStore
             )
         } else {
             LazyColumn(

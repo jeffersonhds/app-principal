@@ -58,6 +58,7 @@ fun HomeScreen(
     onServicesClick: () -> Unit,
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onStoreClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val products by viewModel.products.collectAsState()
@@ -151,7 +152,7 @@ fun HomeScreen(
                 HomeSectionHeader(
                     title = "🔥 Mais Vendidos",
                     subtitle = "Produtos favoritos dos nossos clientes",
-                    onSeeAll = onSearchClick
+                    onSeeAll = onStoreClick
                 )
 
                 when {
@@ -175,7 +176,7 @@ fun HomeScreen(
                     HomeSectionHeader(
                         title = "✨ Novidades",
                         subtitle = "Acabaram de chegar",
-                        onSeeAll = onSearchClick
+                        onSeeAll = onStoreClick
                     )
                     HomeProductsRow(
                         products = newProducts,

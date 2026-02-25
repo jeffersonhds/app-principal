@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.jefferson.antenas.data.model.User
 import com.jefferson.antenas.ui.theme.*
 import java.net.URLEncoder
+import kotlinx.coroutines.launch
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MODELOS DE NÍVEL DE FIDELIDADE
@@ -62,11 +63,24 @@ private fun getNextTier(points: Int): LoyaltyTier? =
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
+    onOrdersClick: () -> Unit = {},
+    onFavoritesClick: () -> Unit = {},
+    onDownloadsClick: () -> Unit = {},
+    onSupportClick: () -> Unit = {},
+    onFaqClick: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    fun showComingSoon(feature: String) {
+        scope.launch {
+            snackbarHostState.showSnackbar("$feature — Em breve! 🚧")
+        }
+    }
 
     LaunchedEffect(uiState.isLoggedOut) {
         if (uiState.isLoggedOut) onLogout()
@@ -109,63 +123,84 @@ fun ProfileScreen(
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = BackgroundGradient)
-    ) {
-        when {
-            uiState.isLoading -> {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CircularProgressIndicator(color = SignalOrange, strokeWidth = 3.dp)
-                    Text("Carregando perfil...", color = TextSecondary, fontSize = 13.sp)
-                }
-            }
-
-            uiState.error != null -> {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(Icons.Default.Warning, null, tint = ErrorRed, modifier = Modifier.size(48.dp))
-                    Text(uiState.error!!, color = ErrorRed, textAlign = TextAlign.Center, fontSize = 14.sp)
-                }
-            }
-
-            uiState.user != null -> {
-                ProfileContent(
-                    user = uiState.user!!,
-                    onWhatsApp = {
-                        val phone = "5565992895296"
-                        val msg = "Olá Jefferson! Preciso de suporte na minha conta."
-                        try {
-                            val url = "https://api.whatsapp.com/send?phone=$phone&text=${
-                                URLEncoder.encode(msg, "UTF-8")
-                            }"
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                        } catch (_: Exception) {}
-                    },
-                    onLogout = { showLogoutDialog = true }
+    Scaffold(
+        containerColor = MidnightBlueStart,
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MidnightBlueCard,
+                    contentColor = TextPrimary,
+                    actionColor = SignalOrange
                 )
             }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(brush = BackgroundGradient)
+        ) {
+            when {
+                uiState.isLoading -> {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CircularProgressIndicator(color = SignalOrange, strokeWidth = 3.dp)
+                        Text("Carregando perfil...", color = TextSecondary, fontSize = 13.sp)
+                    }
+                }
 
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(Icons.Default.Person, null, tint = TextTertiary, modifier = Modifier.size(52.dp))
-                    Text("Perfil não disponível", color = TextSecondary, fontSize = 15.sp)
+                uiState.error != null -> {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.Warning, null, tint = ErrorRed, modifier = Modifier.size(48.dp))
+                        Text(uiState.error!!, color = ErrorRed, textAlign = TextAlign.Center, fontSize = 14.sp)
+                    }
+                }
+
+                uiState.user != null -> {
+                    ProfileContent(
+                        user = uiState.user!!,
+                        onWhatsApp = {
+                            val phone = "5565992895296"
+                            val msg = "Olá Jefferson! Preciso de suporte na minha conta."
+                            try {
+                                val url = "https://api.whatsapp.com/send?phone=$phone&text=${
+                                    URLEncoder.encode(msg, "UTF-8")
+                                }"
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            } catch (_: Exception) {}
+                        },
+                        onLogout = { showLogoutDialog = true },
+                        onOrdersClick = onOrdersClick,
+                        onFavoritesClick = onFavoritesClick,
+                        onDownloadsClick = onDownloadsClick,
+                        onSupportClick = onSupportClick,
+                        onFaqClick = onFaqClick,
+                        onComingSoon = { feature -> showComingSoon(feature) }
+                    )
+                }
+
+                else -> {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.Person, null, tint = TextTertiary, modifier = Modifier.size(52.dp))
+                        Text("Perfil não disponível", color = TextSecondary, fontSize = 15.sp)
+                    }
                 }
             }
         }
@@ -180,7 +215,13 @@ fun ProfileScreen(
 private fun ProfileContent(
     user: User,
     onWhatsApp: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onOrdersClick: () -> Unit,
+    onFavoritesClick: () -> Unit,
+    onDownloadsClick: () -> Unit,
+    onSupportClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onComingSoon: (String) -> Unit
 ) {
     val tier = getTier(user.points)
     val nextTier = getNextTier(user.points)
@@ -473,28 +514,28 @@ private fun ProfileContent(
                     label = "Meus Pedidos",
                     color = SatelliteBlue,
                     modifier = Modifier.weight(1f),
-                    onClick = {}
+                    onClick = onOrdersClick
                 )
                 QuickActionCard(
                     icon = Icons.Default.Favorite,
                     label = "Favoritos",
                     color = ErrorRed,
                     modifier = Modifier.weight(1f),
-                    onClick = {}
+                    onClick = onFavoritesClick
                 )
                 QuickActionCard(
                     icon = Icons.Default.Message,
                     label = "Suporte",
                     color = SuccessGreen,
                     modifier = Modifier.weight(1f),
-                    onClick = onWhatsApp
+                    onClick = onSupportClick
                 )
                 QuickActionCard(
                     icon = Icons.Default.Download,
                     label = "Downloads",
                     color = SignalOrange,
                     modifier = Modifier.weight(1f),
-                    onClick = {}
+                    onClick = onDownloadsClick
                 )
             }
         }
@@ -511,7 +552,7 @@ private fun ProfileContent(
                 iconColor = SatelliteBlue,
                 title = "Editar Perfil",
                 subtitle = "Nome, foto e dados pessoais",
-                onClick = {}
+                onClick = { onComingSoon("Editar Perfil") }
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -519,7 +560,7 @@ private fun ProfileContent(
                 iconColor = SignalOrange,
                 title = "Notificações",
                 subtitle = "Promoções, pedidos e novidades",
-                onClick = {}
+                onClick = { onComingSoon("Notificações") }
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -527,7 +568,7 @@ private fun ProfileContent(
                 iconColor = SuccessGreen,
                 title = "Meus Endereços",
                 subtitle = "Gerenciar endereços de entrega",
-                onClick = {}
+                onClick = { onComingSoon("Meus Endereços") }
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -535,7 +576,7 @@ private fun ProfileContent(
                 iconColor = AccentPink,
                 title = "Formas de Pagamento",
                 subtitle = "Cartões e métodos salvos",
-                onClick = {}
+                onClick = { onComingSoon("Formas de Pagamento") }
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -543,7 +584,7 @@ private fun ProfileContent(
                 iconColor = WarningYellow,
                 title = "Segurança",
                 subtitle = "Senha e autenticação",
-                onClick = {}
+                onClick = { onComingSoon("Segurança") }
             )
         }
 
@@ -561,7 +602,7 @@ private fun ProfileContent(
                 subtitle = "Atendimento via WhatsApp",
                 badge = "Online",
                 badgeColor = SuccessGreen,
-                onClick = onWhatsApp
+                onClick = onSupportClick
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -569,7 +610,7 @@ private fun ProfileContent(
                 iconColor = SatelliteBlue,
                 title = "Perguntas Frequentes",
                 subtitle = "Dúvidas sobre pedidos e produtos",
-                onClick = {}
+                onClick = onFaqClick
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -577,7 +618,7 @@ private fun ProfileContent(
                 iconColor = TextTertiary,
                 title = "Sobre o Aplicativo",
                 subtitle = "Versão 1.0.0 • Jefferson Antenas",
-                onClick = {}
+                onClick = { onComingSoon("Sobre o App") }
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -585,7 +626,7 @@ private fun ProfileContent(
                 iconColor = TextTertiary,
                 title = "Termos e Privacidade",
                 subtitle = "Política de uso e dados",
-                onClick = {}
+                onClick = { onComingSoon("Termos e Privacidade") }
             )
         }
 

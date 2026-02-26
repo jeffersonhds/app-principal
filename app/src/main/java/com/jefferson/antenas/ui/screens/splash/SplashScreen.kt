@@ -174,10 +174,10 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         launch { delay(1100); dotsAlpha.animateTo(1f, tween(400)) }
 
         // Progress bar
-        launch { delay(400); progress.animateTo(1f, tween(2800, easing = LinearEasing)) }
+        launch { delay(400); progress.animateTo(1f, tween(4300, easing = LinearEasing)) }
 
-        // Total: 3.5s
-        delay(3500)
+        // Total: 5s
+        delay(5000)
         onSplashFinished()
     }
 

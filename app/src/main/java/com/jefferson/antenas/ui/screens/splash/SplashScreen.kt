@@ -9,6 +9,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,8 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,38 +56,71 @@ import com.jefferson.antenas.ui.theme.SignalOrange
 import com.jefferson.antenas.ui.theme.SignalOrangeDark
 import com.jefferson.antenas.ui.theme.TextPrimary
 import com.jefferson.antenas.ui.theme.TextTertiary
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// ── Particle data ─────────────────────────────────────────────────────────────
+
+private data class Particle(
+    val xFrac: Float,
+    val phase: Float,
+    val sizeDp: Float,
+    val baseAlpha: Float,
+    val isBlue: Boolean = false
+)
+
+private val PARTICLES = listOf(
+    Particle(0.08f, 0.00f, 5f, 0.28f),
+    Particle(0.18f, 0.15f, 3f, 0.20f, isBlue = true),
+    Particle(0.30f, 0.35f, 6f, 0.22f),
+    Particle(0.42f, 0.55f, 4f, 0.20f, isBlue = true),
+    Particle(0.55f, 0.10f, 5f, 0.25f),
+    Particle(0.65f, 0.45f, 3f, 0.18f),
+    Particle(0.75f, 0.70f, 5f, 0.22f, isBlue = true),
+    Particle(0.85f, 0.25f, 4f, 0.20f),
+    Particle(0.92f, 0.85f, 3f, 0.16f, isBlue = true),
+    Particle(0.25f, 0.60f, 4f, 0.18f)
+)
+
+private const val TITLE_TEXT = "JEFFERSON ANTENAS"
+
+// ── Screen ────────────────────────────────────────────────────────────────────
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
 
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash_anim))
 
-    // ── Animatables ────────────────────────────────────────────────────────────
-    val logoAlpha   = remember { Animatable(0f) }
-    val logoScale   = remember { Animatable(0.4f) }
-    val glowAlpha   = remember { Animatable(0f) }
-    val titleAlpha  = remember { Animatable(0f) }
-    val titleOffset = remember { Animatable(30f) }  // slides up from below
-    val taglineAlpha = remember { Animatable(0f) }
-    val progress    = remember { Animatable(0f) }
-    val dotsAlpha   = remember { Animatable(0f) }
-    val bgGlow      = remember { Animatable(0f) }
+    // ── Animatables ───────────────────────────────────────────────────────────
+    val logoAlpha        = remember { Animatable(0f) }
+    val logoScale        = remember { Animatable(0.4f) }
+    val glowAlpha        = remember { Animatable(0f) }
+    val taglineAlpha     = remember { Animatable(0f) }
+    val progress         = remember { Animatable(0f) }
+    val dotsAlpha        = remember { Animatable(0f) }
+    val bgGlow           = remember { Animatable(0f) }
+    val particleProgress = remember { Animatable(0f) }
 
-    // Pulsing glow behind logo
-    val infiniteTransition = rememberInfiniteTransition(label = "glow_pulse")
+    // One Animatable per character for letter-by-letter reveal
+    val charAlphas = remember { TITLE_TEXT.indices.map { Animatable(0f) } }
+
+    // ── Infinite transitions ──────────────────────────────────────────────────
+    val infiniteTransition = rememberInfiniteTransition(label = "splash")
+
     val glowPulse by infiniteTransition.animateFloat(
-        initialValue = 0.18f,
-        targetValue  = 0.35f,
-        animationSpec = infiniteRepeatable(
-            animation   = tween(1100, easing = FastOutSlowInEasing),
-            repeatMode  = RepeatMode.Reverse
-        ),
+        initialValue = 0.18f, targetValue = 0.35f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "glow_pulse"
     )
-
-    // Dot 1/2/3 pulsing with offset delays
+    // Radar ring rotates 360° every 3 seconds
+    val radarRotation by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Restart),
+        label = "radar"
+    )
     val dot1 by infiniteTransition.animateFloat(
         initialValue = 0.3f, targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
@@ -99,48 +137,46 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         label = "d3"
     )
 
-    // ── Sequência cinematográfica ──────────────────────────────────────────────
+    // ── Cinematic sequence ────────────────────────────────────────────────────
     LaunchedEffect(Unit) {
         // Background glow fade in
         launch { bgGlow.animateTo(1f, tween(800)) }
 
-        // Logo: glow then scale+fade in — PARALLEL
+        // Particles loop continuously
         launch {
-            delay(100)
-            glowAlpha.animateTo(1f, tween(500))
+            while (true) {
+                particleProgress.snapTo(0f)
+                particleProgress.animateTo(1f, tween(4000, easing = LinearEasing))
+            }
         }
+
+        // Logo: glow appears, then logo fades+scales in (parallel)
+        launch { delay(100); glowAlpha.animateTo(1f, tween(500)) }
         launch {
             delay(150)
             launch { logoAlpha.animateTo(1f, tween(700)) }
             logoScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 200f))
         }
 
-        // Title slides up + fades simultaneously — PARALLEL
+        // Title: letter-by-letter (55ms per char, 200ms fade each)
         launch {
             delay(700)
-            launch { titleAlpha.animateTo(1f, tween(500)) }
-            titleOffset.animateTo(0f, tween(500, easing = FastOutSlowInEasing))
+            charAlphas.forEachIndexed { index, anim ->
+                launch {
+                    delay(index * 55L)
+                    anim.animateTo(1f, tween(200))
+                }
+            }
         }
 
-        // Tagline fades after title
-        launch {
-            delay(1000)
-            taglineAlpha.animateTo(1f, tween(500))
-        }
+        // Tagline and dots
+        launch { delay(1000); taglineAlpha.animateTo(1f, tween(500)) }
+        launch { delay(1100); dotsAlpha.animateTo(1f, tween(400)) }
 
-        // Dots appear
-        launch {
-            delay(1100)
-            dotsAlpha.animateTo(1f, tween(400))
-        }
+        // Progress bar
+        launch { delay(400); progress.animateTo(1f, tween(2800, easing = LinearEasing)) }
 
-        // Progress bar fills across the full duration
-        launch {
-            delay(400)
-            progress.animateTo(1f, tween(2800, easing = LinearEasing))
-        }
-
-        // Total splash time: 3.5s
+        // Total: 3.5s
         delay(3500)
         onSplashFinished()
     }
@@ -151,15 +187,32 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF0A1628),
-                        MidnightBlueStart,
-                        Color(0xFF0C1A2E)
-                    )
+                    listOf(Color(0xFF0A1628), MidnightBlueStart, Color(0xFF0C1A2E))
                 )
             )
     ) {
-        // Background radial glow (top)
+
+        // ── 1. Floating particles (drawn behind everything) ────────────────
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(bgGlow.value)
+        ) {
+            PARTICLES.forEach { p ->
+                val pY = (particleProgress.value + p.phase) % 1f
+                val screenY = size.height * (1f - pY)
+                val screenX = size.width * p.xFrac
+                val fade = (1f - pY * 0.55f).coerceIn(0f, 1f)
+                val color = if (p.isBlue) SatelliteBlue else SignalOrange
+                drawCircle(
+                    color = color.copy(alpha = p.baseAlpha * fade),
+                    radius = p.sizeDp.dp.toPx() / 2f,
+                    center = Offset(screenX, screenY)
+                )
+            }
+        }
+
+        // ── 2. Background radial glows ────────────────────────────────────
         Box(
             modifier = Modifier
                 .size(400.dp)
@@ -167,14 +220,8 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 .offset(y = (-80).dp)
                 .clip(CircleShape)
                 .alpha(bgGlow.value * 0.4f)
-                .background(
-                    Brush.radialGradient(
-                        listOf(SignalOrange.copy(alpha = 0.20f), Color.Transparent)
-                    )
-                )
+                .background(Brush.radialGradient(listOf(SignalOrange.copy(alpha = 0.20f), Color.Transparent)))
         )
-
-        // Background radial glow (bottom)
         Box(
             modifier = Modifier
                 .size(300.dp)
@@ -182,14 +229,10 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 .offset(y = 80.dp)
                 .clip(CircleShape)
                 .alpha(bgGlow.value * 0.3f)
-                .background(
-                    Brush.radialGradient(
-                        listOf(SatelliteBlue.copy(alpha = 0.15f), Color.Transparent)
-                    )
-                )
+                .background(Brush.radialGradient(listOf(SatelliteBlue.copy(alpha = 0.15f), Color.Transparent)))
         )
 
-        // ── Central content ───────────────────────────────────────────
+        // ── 3. Central content ────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -197,20 +240,16 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Glow ring + Lottie
+            // Logo zone: glow rings + radar + Lottie
             Box(contentAlignment = Alignment.Center) {
 
-                // Outer pulse ring
+                // Outer pulsing glow ring
                 Box(
                     modifier = Modifier
                         .size(280.dp)
                         .clip(CircleShape)
                         .alpha(glowAlpha.value * glowPulse)
-                        .background(
-                            Brush.radialGradient(
-                                listOf(SignalOrange.copy(alpha = 0.28f), Color.Transparent)
-                            )
-                        )
+                        .background(Brush.radialGradient(listOf(SignalOrange.copy(alpha = 0.28f), Color.Transparent)))
                 )
 
                 // Inner glow ring
@@ -219,12 +258,48 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                         .size(200.dp)
                         .clip(CircleShape)
                         .alpha(glowAlpha.value * (glowPulse + 0.1f).coerceAtMost(1f))
-                        .background(
-                            Brush.radialGradient(
-                                listOf(SignalOrange.copy(alpha = 0.18f), Color.Transparent)
-                            )
-                        )
+                        .background(Brush.radialGradient(listOf(SignalOrange.copy(alpha = 0.18f), Color.Transparent)))
                 )
+
+                // Radar ring — rotating arc drawn with Canvas
+                Canvas(
+                    modifier = Modifier
+                        .size(300.dp)
+                        .graphicsLayer { rotationZ = radarRotation }
+                        .alpha(glowAlpha.value * 0.9f)
+                ) {
+                    val strokePx = 2.5.dp.toPx()
+                    val inset = strokePx
+
+                    // Sweep arc: 0° = trailing (transparent), 90° = leading (orange)
+                    // sweepGradient fraction: 90°/360° = 0.25
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            0f    to Color.Transparent,
+                            0.10f to SignalOrange.copy(alpha = 0.08f),
+                            0.20f to SignalOrange.copy(alpha = 0.45f),
+                            0.25f to SignalOrange.copy(alpha = 0.90f)
+                        ),
+                        startAngle = 0f,
+                        sweepAngle = 90f,
+                        useCenter = false,
+                        style = Stroke(width = strokePx, cap = StrokeCap.Round),
+                        topLeft = Offset(inset, inset),
+                        size = Size(size.width - inset * 2, size.height - inset * 2)
+                    )
+
+                    // Bright dot at the leading edge (90° = bottom of circle)
+                    val radius = size.minDimension / 2f - inset
+                    val endRad = PI / 2.0
+                    drawCircle(
+                        color = SignalOrange,
+                        radius = 4.dp.toPx(),
+                        center = Offset(
+                            size.width / 2f + radius * cos(endRad).toFloat(),
+                            size.height / 2f + radius * sin(endRad).toFloat()
+                        )
+                    )
+                }
 
                 // Lottie animation
                 LottieAnimation(
@@ -239,19 +314,25 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
             Spacer(Modifier.height(28.dp))
 
-            // "JEFFERSON ANTENAS" — slides up + fades
-            Text(
-                text = "JEFFERSON ANTENAS",
-                color = TextPrimary,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 2.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer {
-                    alpha = titleAlpha.value
-                    translationY = titleOffset.value
+            // Letter-by-letter title reveal
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TITLE_TEXT.forEachIndexed { index, char ->
+                    Text(
+                        text = char.toString(),
+                        color = TextPrimary,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = if (char != ' ') 2.sp else 0.sp,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = charAlphas[index].value
+                            translationY = (1f - charAlphas[index].value) * 20f
+                        }
+                    )
                 }
-            )
+            }
 
             Spacer(Modifier.height(8.dp))
 
@@ -267,19 +348,19 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
             Spacer(Modifier.height(36.dp))
 
-            // Pulsing dots loader
+            // Pulsing dots
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.alpha(dotsAlpha.value)
             ) {
-                PulsingDot(alpha = dot1)
-                PulsingDot(alpha = dot2)
-                PulsingDot(alpha = dot3)
+                PulsingDot(dot1)
+                PulsingDot(dot2)
+                PulsingDot(dot3)
             }
         }
 
-        // ── Bottom section ────────────────────────────────────────────
+        // ── 4. Bottom progress bar + version ─────────────────────────────
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -288,7 +369,6 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 .padding(bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Progress bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -301,16 +381,10 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                         .fillMaxWidth(progress.value)
                         .height(3.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(SignalOrange, SignalOrangeDark)
-                            )
-                        )
+                        .background(Brush.horizontalGradient(listOf(SignalOrange, SignalOrangeDark)))
                 )
             }
-
             Spacer(Modifier.height(14.dp))
-
             Text(
                 text = "v1.0.0 • Cuiabá, MT",
                 color = TextTertiary,

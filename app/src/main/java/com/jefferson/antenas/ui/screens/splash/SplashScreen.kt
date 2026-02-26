@@ -138,11 +138,11 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         // Progress bar fills across the full duration
         launch {
             delay(400)
-            progress.animateTo(1f, tween(1800, easing = LinearEasing))
+            progress.animateTo(1f, tween(2800, easing = LinearEasing))
         }
 
-        // Total splash time: 2.8s
-        delay(2800)
+        // Total splash time: 3.5s
+        delay(3500)
         onSplashFinished()
     }
 

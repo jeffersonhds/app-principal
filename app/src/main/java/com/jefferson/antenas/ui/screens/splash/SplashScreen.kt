@@ -50,7 +50,6 @@ import com.jefferson.antenas.ui.theme.SatelliteBlue
 import com.jefferson.antenas.ui.theme.SignalOrange
 import com.jefferson.antenas.ui.theme.SignalOrangeDark
 import com.jefferson.antenas.ui.theme.TextPrimary
-import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.TextTertiary
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -105,21 +104,21 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         // Background glow fade in
         launch { bgGlow.animateTo(1f, tween(800)) }
 
-        // Logo: glow then scale+fade in
+        // Logo: glow then scale+fade in — PARALLEL
         launch {
             delay(100)
             glowAlpha.animateTo(1f, tween(500))
         }
         launch {
             delay(150)
-            logoAlpha.animateTo(1f, tween(600))
+            launch { logoAlpha.animateTo(1f, tween(700)) }
             logoScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 200f))
         }
 
-        // Title slides up after logo settles
+        // Title slides up + fades simultaneously — PARALLEL
         launch {
             delay(700)
-            titleAlpha.animateTo(1f, tween(500))
+            launch { titleAlpha.animateTo(1f, tween(500)) }
             titleOffset.animateTo(0f, tween(500, easing = FastOutSlowInEasing))
         }
 

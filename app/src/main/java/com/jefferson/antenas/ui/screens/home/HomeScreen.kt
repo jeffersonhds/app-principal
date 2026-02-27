@@ -43,6 +43,7 @@ import com.jefferson.antenas.ui.componets.*
 import com.jefferson.antenas.ui.theme.*
 import com.jefferson.antenas.utils.toCurrency
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.util.Calendar
@@ -417,7 +418,6 @@ fun HeroCarouselModernized(
     )
 
     val pagerState = rememberPagerState(pageCount = { banners.size })
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         while (isActive) {

@@ -1,5 +1,6 @@
 package com.jefferson.antenas.di
 
+import com.jefferson.antenas.BuildConfig
 import com.jefferson.antenas.data.remote.JeffersonApi
 import dagger.Module
 import dagger.Provides
@@ -17,13 +18,14 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val BASE_URL = "https://web-production-d763f.up.railway.app/" +
+            "" +
             ""
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         }
 
         return OkHttpClient.Builder()

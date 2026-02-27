@@ -93,6 +93,44 @@ class CheckoutViewModel @Inject constructor(
     fun onPaymentSuccess() {
         viewModelScope.launch {
             val currentUser = auth.currentUser
+            val cartItems: List<CartItem> = cartRepository.items.first()
+            val totalAmount = cartTotal.value
+            val state = uiState.value
+
+            // Salva o pedido na coleção "orders" do Firestore
+            val orderData = hashMapOf(
+                "userId" to (currentUser?.uid ?: "anonymous"),
+                "status" to "paid",
+                "total" to totalAmount,
+                "createdAt" to FieldValue.serverTimestamp(),
+                "items" to cartItems.map { item ->
+                    hashMapOf(
+                        "productId" to item.product.id,
+                        "productName" to item.product.name,
+                        "quantity" to item.quantity,
+                        "unitPrice" to item.product.getDiscountedPrice(),
+                        "total" to item.total
+                    )
+                },
+                "deliveryAddress" to hashMapOf(
+                    "name" to state.name,
+                    "cep" to state.cep,
+                    "address" to state.address,
+                    "neighborhood" to state.neighborhood,
+                    "city" to state.city,
+                    "phone" to state.phoneNumber
+                )
+            )
+
+            firestore.collection("orders")
+                .add(orderData)
+                .addOnSuccessListener { docRef ->
+                    Log.d("CheckoutViewModel", "Pedido salvo com ID: ${docRef.id}")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("CheckoutViewModel", "Erro ao salvar pedido no Firestore", e)
+                }
+
             if (currentUser == null) {
                 Log.e("CheckoutViewModel", "Usuário não logado, não é possível dar pontos.")
                 cartRepository.clearCart()
@@ -100,7 +138,6 @@ class CheckoutViewModel @Inject constructor(
                 return@launch
             }
 
-            val totalAmount = cartTotal.value
             val pointsToAward = (totalAmount / 10).toLong()
 
             if (pointsToAward <= 0) {

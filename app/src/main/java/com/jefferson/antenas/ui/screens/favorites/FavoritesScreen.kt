@@ -49,7 +49,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -98,30 +97,19 @@ fun FavoritesScreen(
     onBackClick: () -> Unit,
     onProductClick: (String) -> Unit,
     onShopClick: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val products by viewModel.products.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-
-    val savedIds = remember { mutableStateSetOf<String>() }
-
-    // Pre-populate favorites from discounted/new products on first load
-    LaunchedEffect(products) {
-        if (savedIds.isEmpty() && products.isNotEmpty()) {
-            val featured = products.filter { (it.discount ?: 0) > 0 || it.isNew == true }
-            if (featured.isNotEmpty()) {
-                featured.forEach { savedIds.add(it.id) }
-            } else {
-                products.take(3).forEach { savedIds.add(it.id) }
-            }
-        }
-    }
+    val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
+    val isFavLoading by favoritesViewModel.isLoading.collectAsState()
 
     var selectedFilter by remember { mutableStateOf("Todos") }
     var sortOption by remember { mutableStateOf(FavSortOption.RELEVANCE) }
     var showSortMenu by remember { mutableStateOf(false) }
 
-    val savedProducts = products.filter { it.id in savedIds }
+    val savedProducts = products.filter { it.id in favoriteIds }
 
     val categories = remember(savedProducts) {
         savedProducts.mapNotNull { it.category }.distinct().take(3)
@@ -146,15 +134,15 @@ fun FavoritesScreen(
 
     val maxDiscount = savedProducts.maxOfOrNull { it.discount ?: 0 } ?: 0
     val onSaleCount = savedProducts.count { (it.discount ?: 0) > 0 }
-    val suggestions = products.filter { it.id !in savedIds }.take(6)
+    val suggestions = products.filter { it.id !in favoriteIds }.take(6)
 
     Scaffold(
         containerColor = MidnightBlueStart,
         topBar = {
-            FavoritesTopBar(count = savedIds.size, onBackClick = onBackClick)
+            FavoritesTopBar(count = favoriteIds.size, onBackClick = onBackClick)
         }
     ) { padding ->
-        if (isLoading) {
+        if (isLoading || isFavLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -174,7 +162,7 @@ fun FavoritesScreen(
         ) {
             item {
                 FavoritesHeroHeader(
-                    totalSaved = savedIds.size,
+                    totalSaved = favoriteIds.size,
                     maxDiscount = maxDiscount,
                     onSaleCount = onSaleCount
                 )
@@ -226,7 +214,7 @@ fun FavoritesScreen(
                     FavoriteProductCard(
                         product = product,
                         onProductClick = { onProductClick(product.id) },
-                        onRemoveFavorite = { savedIds.remove(product.id) },
+                        onRemoveFavorite = { favoritesViewModel.toggleFavorite(product.id) },
                         onAddToCart = { viewModel.addToCart(it) }
                     )
                 }

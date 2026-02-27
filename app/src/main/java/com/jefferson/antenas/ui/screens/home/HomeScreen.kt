@@ -45,6 +45,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.util.Calendar
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import kotlin.math.roundToInt
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TELA PRINCIPAL
@@ -121,6 +130,9 @@ fun HomeScreen(
 
                 // ── Barra de busca clicável ──────────────────────────────────
                 HomeSearchBar(onClick = onSearchClick)
+
+                // ── Faixa de urgência ────────────────────────────────────────
+                UrgencyStrip()
 
                 // ── Carousel de banners ──────────────────────────────────────
                 HeroCarouselModernized(banners = banners)
@@ -245,9 +257,16 @@ private fun HomeTopBar(
                         fontSize = 15.sp,
                         lineHeight = 16.sp
                     )
+                    val greeting = remember {
+                        when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+                            in 0..11 -> "Bom dia! ☀️"
+                            in 12..17 -> "Boa tarde! 🌤️"
+                            else -> "Boa noite! 🌙"
+                        }
+                    }
                     Text(
-                        "Sua loja de confiança",
-                        color = TextTertiary,
+                        greeting,
+                        color = SignalOrange.copy(alpha = 0.85f),
                         fontSize = 10.sp,
                         lineHeight = 12.sp
                     )
@@ -309,6 +328,51 @@ private fun HomeSearchBar(onClick: () -> Unit) {
                         .padding(6.dp)
                 )
             }
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FAIXA DE URGÊNCIA
+// ══════════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun UrgencyStrip() {
+    val infiniteTransition = rememberInfiniteTransition(label = "urgency")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.07f, targetValue = 0.18f,
+        animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "urgency_pulse"
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color.Transparent, SignalOrange.copy(alpha = pulseAlpha), Color.Transparent)
+                )
+            )
+            .padding(vertical = 7.dp, horizontal = 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("🚚", fontSize = 12.sp)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                "Frete grátis acima de R\$299",
+                color = SignalOrange,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("  •  ", color = TextTertiary, fontSize = 12.sp)
+            Text(
+                "Entrega em todo o Brasil",
+                color = TextSecondary,
+                fontSize = 12.sp
+            )
         }
     }
 }
@@ -426,17 +490,17 @@ fun HeroCarouselModernized(banners: List<BannerItem>, modifier: Modifier = Modif
 // CATEGORIAS RÁPIDAS
 // ══════════════════════════════════════════════════════════════════════════════
 
-private data class HomeCategory(val icon: String, val label: String)
+private data class HomeCategory(val icon: String, val label: String, val color: Color)
 
 @Composable
 private fun HomeCategoriesRow(onCategoryClick: (String) -> Unit) {
     val categories = listOf(
-        HomeCategory("📡", "Antenas"),
-        HomeCategory("📺", "Receptores"),
-        HomeCategory("🔌", "Cabos"),
-        HomeCategory("🔧", "Instalação"),
-        HomeCategory("💰", "Promoções"),
-        HomeCategory("🆕", "Novidades")
+        HomeCategory("📡", "Antenas",    SignalOrange),
+        HomeCategory("📺", "Receptores", SatelliteBlue),
+        HomeCategory("🔌", "Cabos",      SuccessGreen),
+        HomeCategory("🔧", "Instalação", Color(0xFFF59E0B)),
+        HomeCategory("💰", "Promoções",  Color(0xFFEC4899)),
+        HomeCategory("🆕", "Novidades",  Color(0xFF8B5CF6))
     )
 
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
@@ -461,21 +525,30 @@ private fun HomeCategoriesRow(onCategoryClick: (String) -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Surface(
-                        color = CardGradientStart,
+                        color = cat.color.copy(alpha = 0.12f),
                         shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(0.5.dp, CardBorder),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, cat.color.copy(alpha = 0.35f)),
                         modifier = Modifier.size(56.dp)
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.radialGradient(
+                                        listOf(cat.color.copy(alpha = 0.20f), Color.Transparent)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(cat.icon, fontSize = 24.sp)
                         }
                     }
                     Text(
                         cat.label,
                         fontSize = 10.sp,
-                        color = TextSecondary,
+                        color = cat.color.copy(alpha = 0.9f),
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1
                     )
                 }
@@ -578,7 +651,22 @@ private fun FlashSaleSection(
     val minutes = (secondsLeft % 3600) / 60
     val seconds = secondsLeft % 60
 
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+    val flashInfinite = rememberInfiniteTransition(label = "flash")
+    val flashGlow by flashInfinite.animateFloat(
+        initialValue = 0.03f, targetValue = 0.10f,
+        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "flashglow"
+    )
+
+    Column(
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(SignalOrange.copy(alpha = flashGlow), Color.Transparent, Color.Transparent)
+                )
+            )
+    ) {
         // Header laranja com countdown
         Row(
             modifier = Modifier
@@ -749,7 +837,32 @@ private fun HomeProductCard(
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 16.sp
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(3.dp))
+                // Estrelas de avaliação
+                val starVal = 4.5f + (product.id.sumOf { it.code } % 5) * 0.1f
+                val reviewCnt = 50 + product.id.sumOf { it.code } % 150
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Star, null,
+                        tint = Color(0xFFFFC107),
+                        modifier = Modifier.size(9.dp)
+                    )
+                    Text(
+                        String.format("%.1f", starVal),
+                        fontSize = 9.sp,
+                        color = Color(0xFFFFC107),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        " ($reviewCnt)",
+                        fontSize = 9.sp,
+                        color = TextTertiary
+                    )
+                }
+                Spacer(Modifier.height(3.dp))
                 if (hasDiscount) {
                     Text(
                         product.price,
@@ -764,6 +877,23 @@ private fun HomeProductCard(
                     fontWeight = FontWeight.ExtraBold,
                     color = SignalOrange
                 )
+                // Badge frete grátis
+                if (discountedPrice >= 299.0) {
+                    Spacer(Modifier.height(3.dp))
+                    Surface(
+                        color = SuccessGreen.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(Icons.Default.LocalShipping, null, tint = SuccessGreen, modifier = Modifier.size(9.dp))
+                            Text("Frete grátis", fontSize = 8.sp, color = SuccessGreen, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
                 Spacer(Modifier.height(6.dp))
                 // Botão adicionar
                 Surface(
@@ -960,8 +1090,26 @@ private fun HomeSocialProof() {
 
 @Composable
 private fun SocialProofStat(value: String, label: String) {
+    val numStr = value.filter { it.isDigit() || it == '.' }
+    val suffix = value.filter { !it.isDigit() && it != '.' }
+    val target = numStr.toFloatOrNull() ?: 0f
+    val isDecimal = numStr.contains('.')
+
+    var animVal by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        val steps = 40
+        for (i in 1..steps) {
+            delay(30L)
+            animVal = target * i / steps.toFloat()
+        }
+        animVal = target
+    }
+
+    val display = if (isDecimal) "${String.format("%.1f", animVal)}$suffix"
+                  else "${animVal.roundToInt()}$suffix"
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = SignalOrange)
+        Text(display, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = SignalOrange)
         Text(label, fontSize = 9.sp, color = TextTertiary, textAlign = TextAlign.Center, lineHeight = 12.sp)
     }
 }

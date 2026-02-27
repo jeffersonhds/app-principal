@@ -62,7 +62,7 @@ class OrdersViewModel @Inject constructor(
                         val dateStr = timestamp?.toDate()?.let { dateFormat.format(it) } ?: "—"
 
                         @Suppress("UNCHECKED_CAST")
-                        val rawItems = doc.get("items") as? List<Map<String, Any>> ?: emptyList()
+                        val rawItems = (doc.get("items") as? List<*>)?.filterIsInstance<Map<String, Any>>() ?: emptyList()
                         val orderItems = rawItems.map { item ->
                             OrderItem(
                                 name = item["productName"] as? String ?: "Produto",

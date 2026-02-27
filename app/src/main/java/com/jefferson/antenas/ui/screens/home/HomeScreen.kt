@@ -420,11 +420,9 @@ fun HeroCarouselModernized(
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        while (true) {
+        while (isActive) {
             delay(5000)
-            coroutineScope.launch {
-                pagerState.animateScrollToPage((pagerState.currentPage + 1) % banners.size)
-            }
+            pagerState.animateScrollToPage((pagerState.currentPage + 1) % banners.size)
         }
     }
 

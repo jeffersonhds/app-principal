@@ -113,6 +113,8 @@ fun CheckoutScreen(
     }
 
     val isFormValid = uiState.name.isNotBlank() &&
+            uiState.phoneNumber.isNotBlank() &&
+            uiState.cep.isNotBlank() &&
             uiState.address.isNotBlank() &&
             uiState.city.isNotBlank()
 
@@ -233,15 +235,26 @@ fun CheckoutScreen(
                     trailingContent = {
                         Surface(
                             color = SatelliteBlue.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(6.dp)
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.clickable(enabled = !uiState.isCepLoading) { viewModel.searchCep() }
                         ) {
-                            Text(
-                                "Buscar",
-                                fontSize = 11.sp,
-                                color = SatelliteBlue,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
+                            if (uiState.isCepLoading) {
+                                CircularProgressIndicator(
+                                    color = SatelliteBlue,
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .size(14.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    "Buscar",
+                                    fontSize = 11.sp,
+                                    color = SatelliteBlue,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
                         }
                     }
                 )
@@ -362,7 +375,7 @@ fun CheckoutScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.Error, null, tint = ErrorRed, modifier = Modifier.size(18.dp))
-                        Text(uiState.error!!, color = ErrorRed, fontSize = 13.sp)
+                        Text(uiState.error ?: "", color = ErrorRed, fontSize = 13.sp)
                     }
                 }
             }
@@ -1077,7 +1090,7 @@ private fun CheckoutBottomBar(
             if (!isEnabled && !isLoading) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Preencha nome, endereço e cidade para continuar",
+                    "Preencha todos os campos obrigatórios para continuar",
                     fontSize = 10.sp,
                     color = TextTertiary,
                     textAlign = TextAlign.Center,

@@ -1,14 +1,22 @@
 package com.jefferson.antenas.ui.screens.store
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jefferson.antenas.ui.componets.*
 import com.jefferson.antenas.ui.screens.home.HomeViewModel
@@ -26,11 +34,17 @@ fun StoreScreen(
     val products by viewModel.products.collectAsState()
     val cartCount by viewModel.cartItemCount.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedSort by remember { mutableStateOf("popular") }
     var showToast by remember { mutableStateOf(false) }
+    var displayedCount by remember { mutableIntStateOf(20) }
+
+    LaunchedEffect(searchQuery, selectedCategory, selectedSort) {
+        displayedCount = 20
+    }
 
     if (showToast) {
         LaunchedEffect(showToast) {
@@ -177,6 +191,42 @@ fun StoreScreen(
                         }
                     }
 
+                    errorMessage != null -> {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 48.dp, horizontal = 32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.WifiOff,
+                                    contentDescription = null,
+                                    tint = SignalOrange.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(52.dp)
+                                )
+                                Text(
+                                    errorMessage!!,
+                                    color = TextSecondary,
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Button(
+                                    onClick = { viewModel.retry() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = SignalOrange),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(
+                                        "Tentar novamente",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     filteredProducts.isEmpty() -> {
                         item {
                             EmptyStoreState(
@@ -188,7 +238,7 @@ fun StoreScreen(
                     }
 
                     else -> {
-                        items(filteredProducts.chunked(2)) { rowProducts ->
+                        items(filteredProducts.take(displayedCount).chunked(2)) { rowProducts ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -216,6 +266,30 @@ fun StoreScreen(
                                     )
                                 } else {
                                     Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+
+                        if (filteredProducts.size > displayedCount) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    OutlinedButton(
+                                        onClick = { displayedCount += 20 },
+                                        border = BorderStroke(1.dp, SignalOrange.copy(alpha = 0.6f)),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = SignalOrange)
+                                    ) {
+                                        Text(
+                                            "Ver mais ${filteredProducts.size - displayedCount} produtos",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp
+                                        )
+                                    }
                                 }
                             }
                         }

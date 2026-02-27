@@ -76,14 +76,18 @@ fun ProductDetailScreen(
                     quantity = quantity,
                     onQuantityChange = { if (it > 0) quantity = it },
                     onAddToCart = {
-                        viewModel.addToCart(product, quantity)
-                        toastMessage = "✓ Adicionado ao carrinho!"
-                        showToast = true
+                        if (!showToast) {
+                            viewModel.addToCart(product, quantity)
+                            toastMessage = "✓ Adicionado ao carrinho!"
+                            showToast = true
+                        }
                     },
                     onBuyNow = {
-                        viewModel.addToCart(product, quantity)
-                        toastMessage = "Redirecionando para o checkout..."
-                        showToast = true
+                        if (!showToast) {
+                            viewModel.addToCart(product, quantity)
+                            toastMessage = "Redirecionando para o checkout..."
+                            showToast = true
+                        }
                     },
                     onWhatsApp = {
                         val phone = "5565992895296"

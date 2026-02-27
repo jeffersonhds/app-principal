@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jefferson.antenas.data.model.User
+import com.jefferson.antenas.data.repository.CartRepository
+import com.jefferson.antenas.data.repository.ProductRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +24,9 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val cartRepository: CartRepository,
+    private val productRepository: ProductRepositoryImpl
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -56,7 +60,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun logout() {
-        auth.signOut()
-        _uiState.update { it.copy(isLoggedOut = true) }
+        viewModelScope.launch {
+            cartRepository.clearCart()
+            productRepository.clearCache()
+            auth.signOut()
+            _uiState.update { it.copy(isLoggedOut = true) }
+        }
     }
 }

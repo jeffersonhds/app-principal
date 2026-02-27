@@ -81,6 +81,9 @@ import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.TextTertiary
 import com.jefferson.antenas.ui.theme.WarningYellow
 import com.jefferson.antenas.utils.WhatsAppHelper
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 
 private const val WHATSAPP_NUMBER = "5565992895296"
 
@@ -112,110 +115,78 @@ data class Order(
     val deliveredDate: String? = null
 )
 
-// ── Mock Data ────────────────────────────────────────────────────────────────
+// ── Screen ───────────────────────────────────────────────────────────────────
 
 private val activeStatuses = listOf(OrderStatus.PROCESSING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
-
-private val mockOrders = listOf(
-    Order(
-        id = "1",
-        number = "JA-2024-047",
-        status = OrderStatus.SHIPPED,
-        items = listOf(
-            OrderItem("Receptor Duosat Prodigy Maxx HD", 1, 319.90),
-            OrderItem("Cabo Coaxial RG6 10m", 2, 29.90)
-        ),
-        total = 379.70,
-        date = "22 Jan 2024",
-        estimatedDelivery = "28 Jan 2024",
-        trackingCode = "BR94837261BR"
-    ),
-    Order(
-        id = "2",
-        number = "JA-2024-052",
-        status = OrderStatus.CONFIRMED,
-        items = listOf(
-            OrderItem("HTV B7 Android Box 4K Ultra HD", 1, 299.90)
-        ),
-        total = 299.90,
-        date = "24 Jan 2024",
-        estimatedDelivery = "30 Jan 2024"
-    ),
-    Order(
-        id = "3",
-        number = "JA-2024-031",
-        status = OrderStatus.DELIVERED,
-        items = listOf(
-            OrderItem("Antena Parabólica 90cm Banda KU", 1, 159.90),
-            OrderItem("LNB Universal Duplo Premium", 1, 49.90)
-        ),
-        total = 209.80,
-        date = "08 Jan 2024",
-        deliveredDate = "14 Jan 2024"
-    ),
-    Order(
-        id = "4",
-        number = "JA-2023-198",
-        status = OrderStatus.DELIVERED,
-        items = listOf(
-            OrderItem("Receptor AzAmerica S2010 Plus", 1, 249.90),
-            OrderItem("Controle Remoto Universal", 1, 39.90),
-            OrderItem("Suporte Antena Parabólica", 1, 59.90)
-        ),
-        total = 349.70,
-        date = "12 Dez 2023",
-        deliveredDate = "18 Dez 2023"
-    ),
-    Order(
-        id = "5",
-        number = "JA-2023-175",
-        status = OrderStatus.CANCELLED,
-        items = listOf(
-            OrderItem("Kit Antena Digital Interna", 1, 89.90)
-        ),
-        total = 89.90,
-        date = "02 Nov 2023"
-    )
-)
-
-// ── Screen ───────────────────────────────────────────────────────────────────
 
 @Composable
 fun OrdersScreen(
     onBackClick: () -> Unit,
-    onShopClick: () -> Unit
+    onShopClick: () -> Unit,
+    viewModel: OrdersViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val orders by viewModel.orders.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Todos", "Em andamento", "Entregues", "Cancelados")
 
-    val filteredOrders = remember(selectedTab) {
+    val filteredOrders = remember(selectedTab, orders) {
         when (selectedTab) {
-            1 -> mockOrders.filter { it.status in activeStatuses }
-            2 -> mockOrders.filter { it.status == OrderStatus.DELIVERED }
-            3 -> mockOrders.filter { it.status == OrderStatus.CANCELLED }
-            else -> mockOrders
+            1 -> orders.filter { it.status in activeStatuses }
+            2 -> orders.filter { it.status == OrderStatus.DELIVERED }
+            3 -> orders.filter { it.status == OrderStatus.CANCELLED }
+            else -> orders
         }
     }
 
     Scaffold(
         containerColor = MidnightBlueStart,
-        topBar = { OrdersTopBar(onBackClick) }
+        topBar = { OrdersTopBar(count = orders.size, onBackClick = onBackClick) }
     ) { padding ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = SignalOrange)
+            }
+            return@Scaffold
+        }
+        if (error != null) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(error!!, color = SignalOrange, textAlign = TextAlign.Center, fontSize = 14.sp)
+                    Button(
+                        onClick = { viewModel.loadOrders() },
+                        colors = ButtonDefaults.buttonColors(containerColor = SignalOrange),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Tentar novamente", color = Color.White, fontWeight = FontWeight.Bold) }
+                }
+            }
+            return@Scaffold
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
-            item { OrdersStatsRow(orders = mockOrders) }
+            item { OrdersStatsRow(orders = orders) }
 
             item {
                 OrdersTabRow(
                     tabs = tabs,
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
-                    orders = mockOrders
+                    orders = orders
                 )
             }
 
@@ -247,7 +218,7 @@ fun OrdersScreen(
 // ── Top Bar ──────────────────────────────────────────────────────────────────
 
 @Composable
-private fun OrdersTopBar(onBackClick: () -> Unit) {
+private fun OrdersTopBar(count: Int, onBackClick: () -> Unit) {
     Surface(color = MidnightBlueStart, shadowElevation = 4.dp) {
         Row(
             modifier = Modifier
@@ -267,7 +238,7 @@ private fun OrdersTopBar(onBackClick: () -> Unit) {
                     fontSize = 18.sp
                 )
                 Text(
-                    "${mockOrders.size} pedidos no total",
+                    "$count pedido${if (count != 1) "s" else ""} no total",
                     color = TextTertiary,
                     fontSize = 11.sp
                 )

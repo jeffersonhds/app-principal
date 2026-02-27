@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jefferson.antenas.ui.componets.BottomNavBar
+import com.google.firebase.auth.FirebaseAuth
 import com.jefferson.antenas.ui.screens.auth.AuthViewModel
 import com.jefferson.antenas.ui.screens.auth.LoginScreen
 import com.jefferson.antenas.ui.screens.auth.SignUpScreen
@@ -72,8 +73,9 @@ fun MainScreen() {
             composable("splash") {
                 SplashScreen(
                     onSplashFinished = {
-                        // Quando terminar, vai para o Login e apaga a Splash da memória (backstack)
-                        navController.navigate("login") {
+                        val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
+                        val destination = if (isLoggedIn) "home" else "login"
+                        navController.navigate(destination) {
                             popUpTo("splash") { inclusive = true }
                         }
                     }

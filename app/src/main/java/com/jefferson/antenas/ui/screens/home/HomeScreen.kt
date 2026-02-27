@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -88,16 +89,16 @@ fun HomeScreen(
     val saleProducts = remember(products) { products.filter { (it.discount ?: 0) > 0 } }
     val newProducts = remember(products) { products.filter { it.isNew == true } }
 
-    // Banners do carousel
+    // Banners do carousel — serviços reais da Jefferson Antenas
     val banners = listOf(
-        BannerItem("1", "Antenas 4K Ultra HD", "Qualidade de imagem cristalina",
-            "https://images.unsplash.com/photo-1518611505868-48510c2e1fb4?w=800&h=400&fit=crop", "Ver Modelos"),
-        BannerItem("2", "Instalação Profissional", "Técnicos qualificados e experientes",
-            "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&h=400&fit=crop", "Agendar"),
-        BannerItem("3", "Até 25% de Desconto", "Aproveite as promoções exclusivas",
-            "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=400&fit=crop", "Aproveitar"),
-        BannerItem("4", "Receptores Inteligentes", "Controle total da sua TV",
-            "https://images.unsplash.com/photo-1611532736579-6b16e2b50449?w=800&h=400&fit=crop", "Conhecer")
+        BannerItem("1", "Antenas Digitais & Satélite", "Sinal HD perfeito para sua TV",
+            "", "Ver Produtos", "📡"),
+        BannerItem("2", "Instalação Profissional", "Apontamento, manutenção e configuração",
+            "", "Agendar pelo WhatsApp", "🔧"),
+        BannerItem("3", "Receptores & Decodificadores", "Os melhores modelos do mercado",
+            "", "Conhecer Modelos", "📺"),
+        BannerItem("4", "Promoções Exclusivas", "Até 30% off em produtos selecionados",
+            "", "Ver Ofertas", "🎁")
     )
 
     // Avaliações
@@ -135,7 +136,24 @@ fun HomeScreen(
                 UrgencyStrip()
 
                 // ── Carousel de banners ──────────────────────────────────────
-                HeroCarouselModernized(banners = banners)
+                HeroCarouselModernized(
+                    banners = banners,
+                    onButtonClick = { bannerId ->
+                        when (bannerId) {
+                            "2" -> {
+                                val phone = "5565992895296"
+                                val msg = "Olá Jefferson! Vim pelo aplicativo e gostaria de agendar uma instalação."
+                                try {
+                                    val url = "https://api.whatsapp.com/send?phone=$phone&text=${
+                                        URLEncoder.encode(msg, "UTF-8")
+                                    }"
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                } catch (_: Exception) {}
+                            }
+                            else -> onStoreClick()
+                        }
+                    }
+                )
 
                 // ── Categorias rápidas ───────────────────────────────────────
                 HomeCategoriesRow(
@@ -383,8 +401,20 @@ private fun UrgencyStrip() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HeroCarouselModernized(banners: List<BannerItem>, modifier: Modifier = Modifier) {
+fun HeroCarouselModernized(
+    banners: List<BannerItem>,
+    modifier: Modifier = Modifier,
+    onButtonClick: (String) -> Unit = {}
+) {
     if (banners.isEmpty()) return
+
+    // Gradientes únicos por banner — identidade visual de cada serviço
+    val bannerGradients = listOf(
+        listOf(Color(0xFFB45309), Color(0xFF78350F), Color(0xFF1C1917)), // laranja — antenas
+        listOf(Color(0xFF1D4ED8), Color(0xFF1E3A8A), Color(0xFF0F172A)), // azul    — instalação
+        listOf(Color(0xFF047857), Color(0xFF064E3B), Color(0xFF0F172A)), // verde   — receptores
+        listOf(Color(0xFFBE123C), Color(0xFF9D174D), Color(0xFF0F172A))  // vermelho — promoções
+    )
 
     val pagerState = rememberPagerState(pageCount = { banners.size })
     val coroutineScope = rememberCoroutineScope()
@@ -410,24 +440,46 @@ fun HeroCarouselModernized(banners: List<BannerItem>, modifier: Modifier = Modif
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 val banner = banners[page]
+                val gradColors = bannerGradients.getOrElse(page) { bannerGradients[0] }
+
                 Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = banner.imageUrl,
-                        contentDescription = banner.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                    // Gradiente inferior
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
-                                    startY = 80f
+
+                    if (banner.imageUrl.isNotEmpty()) {
+                        // Modo foto (caso imageUrl seja preenchida no futuro)
+                        AsyncImage(
+                            model = banner.imageUrl,
+                            contentDescription = banner.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
+                                        startY = 80f
+                                    )
                                 )
-                            )
-                    )
+                        )
+                    } else {
+                        // Modo gradiente premium
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Brush.linearGradient(gradColors))
+                        )
+                        // Ícone decorativo grande no fundo
+                        Text(
+                            banner.icon,
+                            fontSize = 110.sp,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp)
+                                .alpha(0.20f)
+                        )
+                    }
+
                     // Conteúdo do banner
                     Column(
                         modifier = Modifier
@@ -446,18 +498,29 @@ fun HeroCarouselModernized(banners: List<BannerItem>, modifier: Modifier = Modif
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.85f)
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(10.dp))
                         Surface(
                             color = SignalOrange,
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.clickable { onButtonClick(banner.id) }
                         ) {
-                            Text(
-                                banner.buttonText,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                                color = MidnightBlueStart,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text(
+                                    banner.buttonText,
+                                    color = MidnightBlueStart,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 12.sp
+                                )
+                                Icon(
+                                    Icons.Default.ArrowForward, null,
+                                    tint = MidnightBlueStart,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
                         }
                     }
                 }

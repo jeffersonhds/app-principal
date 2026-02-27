@@ -1,5 +1,8 @@
 package com.jefferson.antenas.ui.screens.services
 
+import android.content.Intent
+import android.location.Geocoder
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -25,17 +28,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.HomeRepairService
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Satellite
 import androidx.compose.material.icons.filled.Schedule
@@ -46,9 +54,13 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,6 +68,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +78,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,6 +98,15 @@ import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.TextTertiary
 import com.jefferson.antenas.ui.theme.WarningYellow
 import com.jefferson.antenas.utils.WhatsAppHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
+import kotlin.math.asin
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 // ─────────────────────────────────────────────────────────────
 // Data models
@@ -130,7 +153,7 @@ private val serviceOffers = listOf(
             "Configuração e teste de todos os canais",
             "Orientação de uso ao cliente"
         ),
-        priceLabel = "A partir de R$ 150",
+        priceLabel = "R$ 100,00",
         duration = "2–4 horas",
         accentColor = SatelliteBlue,
         isPopular = true,
@@ -141,15 +164,16 @@ private val serviceOffers = listOf(
         title = "Apontamento de Antena",
         emoji = "🎯",
         icon = Icons.Default.Router,
-        description = "Reajuste preciso do sinal para satélites StarOne, Sky, Claro TV e demais operadoras.",
+        description = "Reajuste preciso do sinal para satélites StarOne, Sky, Claro TV e demais operadoras. LNBs verificados — substituição cobrada à parte caso necessário.",
         includes = listOf(
             "Medição do nível de sinal (dBm)",
             "Reajuste fino do apontamento",
-            "Verificação e substituição do LNB",
+            "Verificação do LNB",
+            "⚠ Substituição de LNB: cobrada à parte",
             "Teste de qualidade de sinal",
             "Relatório técnico básico"
         ),
-        priceLabel = "A partir de R$ 80",
+        priceLabel = "A partir de R$ 70",
         duration = "1–2 horas",
         accentColor = SignalOrange,
         isPopular = true
@@ -159,7 +183,7 @@ private val serviceOffers = listOf(
         title = "Manutenção e Reparo",
         emoji = "🔧",
         icon = Icons.Default.Build,
-        description = "Diagnóstico completo, troca de conectores, cabos defeituosos e reparos gerais do sistema.",
+        description = "Diagnóstico completo do sistema. O valor varia conforme o defeito e o que for necessário realizar. Entre em contato para orçamento.",
         includes = listOf(
             "Diagnóstico completo do sistema",
             "Troca de conectores e cabos",
@@ -167,7 +191,7 @@ private val serviceOffers = listOf(
             "Limpeza da antena e LNB",
             "Teste de funcionamento pós-reparo"
         ),
-        priceLabel = "A partir de R$ 100",
+        priceLabel = "A partir de R$ 50",
         duration = "1–3 horas",
         accentColor = SuccessGreen
     ),
@@ -176,15 +200,16 @@ private val serviceOffers = listOf(
         title = "Atualização de Receptor",
         emoji = "⬆️",
         icon = Icons.Default.Settings,
-        description = "Atualização de firmware, lista de canais e configurações completas do receptor.",
+        description = "Atualização de firmware, lista de canais e configurações completas. R\$ 30 para clientes antigos / R\$ 50 para novos clientes.",
         includes = listOf(
             "Atualização do firmware oficial",
             "Lista de canais atualizada",
             "Configuração de canais favoritos",
             "Ajuste de idioma e fuso horário",
-            "Teste completo de todos os canais"
+            "Teste completo de todos os canais",
+            "Clientes: R\$ 30  •  Novos clientes: R\$ 50"
         ),
-        priceLabel = "A partir de R$ 60",
+        priceLabel = "R\$ 30 / R\$ 50",
         duration = "30–60 min",
         accentColor = AccentPink
     ),
@@ -201,12 +226,31 @@ private val serviceOffers = listOf(
             "Configuração de controle remoto",
             "Tutorial de uso para o cliente"
         ),
-        priceLabel = "A partir de R$ 80",
+        priceLabel = "A partir de R\$ 80",
         duration = "1–2 horas",
         accentColor = WarningYellow
     ),
     ServiceOffer(
         id = 5,
+        title = "Créditos de IPTV",
+        emoji = "🎬",
+        icon = Icons.Default.LiveTv,
+        description = "Créditos IPTV com centenas de canais nacionais e internacionais. Planos mensais, trimestrais e anuais. Tabela completa de preços em breve.",
+        includes = listOf(
+            "Centenas de canais nacionais e internacionais",
+            "Canais HD e Full HD",
+            "Compatível com TV Box, Smart TV e celular",
+            "Suporte técnico incluso",
+            "Mensal: R\$ 35,00",
+            "Trimestral e Anual: consultar tabela de preços"
+        ),
+        priceLabel = "A partir de R\$ 35/mês",
+        duration = "Plano mensal",
+        accentColor = SatelliteBlue,
+        isPopular = true
+    ),
+    ServiceOffer(
+        id = 6,
         title = "Visita Técnica",
         emoji = "🏠",
         icon = Icons.Default.HomeRepairService,
@@ -249,6 +293,10 @@ private val testimonials = listOf(
 )
 
 private const val WHATSAPP_NUMBER = "5565992895296"
+
+// Coordenadas da base em Sapezal — MT
+private const val BASE_LAT = -13.5327
+private const val BASE_LON = -58.8189
 
 // ─────────────────────────────────────────────────────────────
 // Screen
@@ -338,6 +386,12 @@ fun ServicesScreen(onBackClick: () -> Unit) {
             item {
                 Spacer(Modifier.height(8.dp))
                 ServicesCoverageCard()
+            }
+
+            // ── Travel cost calculator ────────────────────────
+            item {
+                Spacer(Modifier.height(12.dp))
+                TravelCostCalculator()
             }
 
             // ── Testimonials ──────────────────────────────────
@@ -840,7 +894,7 @@ private fun ServicesCoverageCard() {
                 )
                 Spacer(Modifier.height(3.dp))
                 Text(
-                    "Cuiabá, Várzea Grande e Região Metropolitana",
+                    "Sapezal — MT e Região",
                     color = TextSecondary,
                     fontSize = 13.sp
                 )
@@ -862,6 +916,277 @@ private fun ServicesCoverageCard() {
                 }
             }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Travel Cost Calculator
+// ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun TravelCostCalculator() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var addressInput by remember { mutableStateOf("") }
+    var resultKm by remember { mutableStateOf<Double?>(null) }
+    var isCalculating by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val r = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = sin(dLat / 2).pow(2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2)
+        return r * 2 * asin(sqrt(a))
+    }
+
+    fun travelCost(km: Double): Double = if (km <= 5.0) 0.0 else km * 2 * 2.5
+
+    fun openMapsRoute() {
+        val origin = "Sapezal, MT, Brasil"
+        val dest = if (addressInput.isNotBlank()) addressInput else "Sapezal, MT"
+        val uri = Uri.parse(
+            "https://www.google.com/maps/dir/?api=1" +
+            "&origin=${Uri.encode(origin)}" +
+            "&destination=${Uri.encode(dest)}" +
+            "&travelmode=driving"
+        )
+        try { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) } catch (_: Exception) {}
+    }
+
+    fun calcDistance() {
+        if (addressInput.isBlank()) return
+        scope.launch {
+            isCalculating = true
+            errorMsg = null
+            resultKm = null
+            try {
+                val km = withContext(Dispatchers.IO) {
+                    if (!Geocoder.isPresent()) throw Exception("Serviço indisponível")
+                    @Suppress("DEPRECATION")
+                    val list = Geocoder(context, Locale("pt", "BR")).getFromLocationName(addressInput, 1)
+                    if (list.isNullOrEmpty()) throw Exception("Não encontrado")
+                    val addr = list[0]
+                    // distância em linha reta × fator de correção de estrada (1.3)
+                    haversineKm(BASE_LAT, BASE_LON, addr.latitude, addr.longitude) * 1.3
+                }
+                resultKm = km
+            } catch (_: Exception) {
+                errorMsg = "Endereço não encontrado. Informe cidade e estado (ex: Campos de Júlio, MT) ou use o botão \"Ver Rota\"."
+            }
+            isCalculating = false
+        }
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        color = SignalOrange.copy(alpha = 0.06f),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, SignalOrange.copy(alpha = 0.22f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // ── Header ───────────────────────────────────────
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(SignalOrange.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.DirectionsCar, null, tint = SignalOrange, modifier = Modifier.size(24.dp))
+                }
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        "Calcular Custo de Deslocamento",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        "R\$ 2,50/km • Ida e volta • Grátis até 5 km",
+                        color = TextTertiary,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // ── Input ────────────────────────────────────────
+            OutlinedTextField(
+                value = addressInput,
+                onValueChange = { addressInput = it; resultKm = null; errorMsg = null },
+                label = { Text("Seu endereço ou cidade", fontSize = 13.sp) },
+                placeholder = { Text("Ex: Campos de Júlio, MT", color = TextTertiary, fontSize = 13.sp) },
+                leadingIcon = {
+                    Icon(Icons.Default.LocationOn, null, tint = SignalOrange, modifier = Modifier.size(20.dp))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MidnightBlueStart,
+                    unfocusedContainerColor = MidnightBlueStart,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedBorderColor = SignalOrange,
+                    unfocusedBorderColor = CardBorder,
+                    focusedLabelColor = SignalOrange,
+                    unfocusedLabelColor = TextTertiary,
+                    cursorColor = SignalOrange
+                ),
+                shape = RoundedCornerShape(12.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { calcDistance() }),
+                singleLine = true
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            // ── Buttons ──────────────────────────────────────
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { calcDistance() },
+                    enabled = addressInput.isNotBlank() && !isCalculating,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = SignalOrange,
+                        disabledContainerColor = CardGradientStart
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp)
+                ) {
+                    if (isCalculating) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            "Calcular",
+                            color = if (addressInput.isNotBlank()) MidnightBlueStart else TextTertiary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+                OutlinedButton(
+                    onClick = { openMapsRoute() },
+                    border = BorderStroke(1.dp, SatelliteBlue.copy(alpha = 0.6f)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = SatelliteBlue)
+                ) {
+                    Icon(Icons.Default.Map, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Ver Rota", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                }
+            }
+
+            // ── Error ────────────────────────────────────────
+            errorMsg?.let { err ->
+                Spacer(Modifier.height(10.dp))
+                Text(err, color = ErrorRed, fontSize = 12.sp, lineHeight = 16.sp)
+            }
+
+            // ── Result ───────────────────────────────────────
+            resultKm?.let { km ->
+                val cost = travelCost(km)
+                Spacer(Modifier.height(14.dp))
+                HorizontalDivider(color = CardBorder, thickness = 0.5.dp)
+                Spacer(Modifier.height(14.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    ResultRow("Distância estimada:", "%.1f km".format(km))
+                    ResultRow("Ida e volta:", "%.1f km".format(km * 2))
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Custo de deslocamento:",
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (cost == 0.0) {
+                        Surface(
+                            color = SuccessGreen.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                "Grátis 🎉",
+                                color = SuccessGreen,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 15.sp,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    } else {
+                        Text(
+                            "R\$ %.2f".format(cost).replace(".", ","),
+                            color = SignalOrange,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 20.sp
+                        )
+                    }
+                }
+
+                if (cost > 0.0) {
+                    Spacer(Modifier.height(8.dp))
+                    Surface(
+                        color = MidnightBlueCard,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(0.5.dp, CardBorder)
+                    ) {
+                        Text(
+                            "⚠ Este valor é referente apenas ao deslocamento e deve ser somado ao valor do serviço contratado.",
+                            color = TextSecondary,
+                            fontSize = 11.sp,
+                            lineHeight = 16.sp,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider(color = CardBorder.copy(alpha = 0.5f), thickness = 0.5.dp)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "📍 Base: Sapezal — MT  •  Grátis até 5 km  •  Acima: R\$ 2,50/km ida + volta",
+                color = TextTertiary,
+                fontSize = 10.sp,
+                lineHeight = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResultRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, color = TextSecondary, fontSize = 13.sp)
+        Text(value, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
     }
 }
 

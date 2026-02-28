@@ -232,6 +232,10 @@ class AuthViewModel @Inject constructor(
             _authState.update { it.copy(error = "Digite seu email para redefinir a senha.") }
             return
         }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _authState.update { it.copy(error = "Digite um email válido para redefinir a senha.") }
+            return
+        }
         viewModelScope.launch {
             try {
                 auth.sendPasswordResetEmail(email).await()

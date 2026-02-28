@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -114,7 +115,7 @@ private enum class SortOption(val label: String) {
     DISCOUNT("Maior Desconto")
 }
 
-private enum class SearchState { EMPTY, NO_RESULTS, RESULTS }
+private enum class SearchState { EMPTY, LOADING, NO_RESULTS, RESULTS }
 
 // ─────────────────────────────────────────────────────────────
 // Main Screen
@@ -127,6 +128,7 @@ fun SearchScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val allProducts by viewModel.products.collectAsState()
+    val isLoadingProducts by viewModel.isLoading.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var sortOption by remember { mutableStateOf(SortOption.RELEVANCE) }
@@ -177,6 +179,7 @@ fun SearchScreen(
 
     val screenState = when {
         searchQuery.isBlank() -> SearchState.EMPTY
+        isLoadingProducts -> SearchState.LOADING
         filteredProducts.isEmpty() -> SearchState.NO_RESULTS
         else -> SearchState.RESULTS
     }
@@ -211,6 +214,12 @@ fun SearchScreen(
                     onSearchTerm = { searchQuery = it },
                     onRemoveRecent = { recentSearches.remove(it) }
                 )
+                SearchState.LOADING -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = SignalOrange)
+                }
                 SearchState.NO_RESULTS -> SearchNoResultsContent(
                     query = searchQuery,
                     trendingSearches = trendingSearches,
@@ -391,7 +400,7 @@ private fun SearchEmptyContent(
                 gradient = Brush.verticalGradient(
                     listOf(SatelliteBlue.copy(alpha = 0.3f), SatelliteBlue.copy(alpha = 0.1f))
                 ),
-                onClick = { /* onSearchTerm("Antena") */ }
+                onClick = { onSearchTerm("Antena") }
             )
             PopularSearchCard(
                 modifier = Modifier.weight(1f),
@@ -401,7 +410,7 @@ private fun SearchEmptyContent(
                 gradient = Brush.verticalGradient(
                     listOf(SignalOrange.copy(alpha = 0.3f), SignalOrange.copy(alpha = 0.1f))
                 ),
-                onClick = { /* onSearchTerm("Receptor") */ }
+                onClick = { onSearchTerm("Receptor") }
             )
             PopularSearchCard(
                 modifier = Modifier.weight(1f),
@@ -411,7 +420,7 @@ private fun SearchEmptyContent(
                 gradient = Brush.verticalGradient(
                     listOf(SuccessGreen.copy(alpha = 0.3f), SuccessGreen.copy(alpha = 0.1f))
                 ),
-                onClick = { /* onSearchTerm("Cabo") */ }
+                onClick = { onSearchTerm("Cabo") }
             )
         }
     }

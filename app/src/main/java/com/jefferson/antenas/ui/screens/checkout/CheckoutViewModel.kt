@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -100,7 +101,7 @@ class CheckoutViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, paymentInfo = response) }
 
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("CheckoutViewModel", "Erro ao iniciar pagamento", e)
                 _uiState.update { it.copy(isLoading = false, error = "Erro ao iniciar pagamento: ${e.message}") }
             }
         }
@@ -177,16 +178,16 @@ class CheckoutViewModel @Inject constructor(
                 )
             )
 
-            firestore.collection("orders")
-                .add(orderData)
-                .addOnSuccessListener { docRef ->
-                    Log.d("CheckoutViewModel", "Pedido salvo com ID: ${docRef.id}")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("CheckoutViewModel", "Erro ao salvar pedido no Firestore", e)
-                    cartRepository.clearCart()
-                    _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
-                }
+            // Aguarda o pedido ser salvo antes de continuar
+            try {
+                val docRef = firestore.collection("orders").add(orderData).await()
+                Log.d("CheckoutViewModel", "Pedido salvo com ID: ${docRef.id}")
+            } catch (e: Exception) {
+                Log.e("CheckoutViewModel", "Erro ao salvar pedido no Firestore", e)
+                cartRepository.clearCart()
+                _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
+                return@launch
+            }
 
             if (currentUser == null) {
                 Log.e("CheckoutViewModel", "Usuário não logado, não é possível dar pontos.")
@@ -206,17 +207,17 @@ class CheckoutViewModel @Inject constructor(
 
             val userDocRef = firestore.collection("users").document(currentUser.uid)
 
-            userDocRef.update("points", FieldValue.increment(pointsToAward))
-                .addOnSuccessListener {
-                    Log.d("CheckoutViewModel", "$pointsToAward pontos adicionados para o usuário ${currentUser.uid}")
-                    cartRepository.clearCart()
-                    _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
-                }
-                .addOnFailureListener { e ->
-                    Log.e("CheckoutViewModel", "Erro ao adicionar pontos para ${currentUser.uid}", e)
-                    cartRepository.clearCart()
-                    _uiState.update { s -> s.copy(error = "Pagamento aprovado, mas houve um erro ao creditar seus pontos. Contate o suporte.", isPaymentSuccessful = true, paymentInfo = null) }
-                }
+            // Aguarda a atualização de pontos antes de concluir
+            try {
+                userDocRef.update("points", FieldValue.increment(pointsToAward)).await()
+                Log.d("CheckoutViewModel", "$pointsToAward pontos adicionados para o usuário ${currentUser.uid}")
+                cartRepository.clearCart()
+                _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
+            } catch (e: Exception) {
+                Log.e("CheckoutViewModel", "Erro ao adicionar pontos para ${currentUser.uid}", e)
+                cartRepository.clearCart()
+                _uiState.update { s -> s.copy(error = "Pagamento aprovado, mas houve um erro ao creditar seus pontos. Contate o suporte.", isPaymentSuccessful = true, paymentInfo = null) }
+            }
         }
     }
 

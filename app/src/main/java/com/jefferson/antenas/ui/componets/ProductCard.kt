@@ -52,6 +52,14 @@ fun ProductCard(
         }
     }
 
+    // Reverte o efeito hover após a navegação
+    if (isHovered) {
+        LaunchedEffect(isHovered) {
+            delay(300)
+            isHovered = false
+        }
+    }
+
     val elevation by animateDpAsState(
         targetValue = if (isHovered) 16.dp else 8.dp,
         label = "CardElevation"

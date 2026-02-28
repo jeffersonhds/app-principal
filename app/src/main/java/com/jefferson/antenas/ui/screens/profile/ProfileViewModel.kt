@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jefferson.antenas.data.model.User
 import com.jefferson.antenas.data.repository.CartRepository
-import com.jefferson.antenas.data.repository.ProductRepositoryImpl
+import com.jefferson.antenas.data.repository.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +27,7 @@ class ProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val cartRepository: CartRepository,
-    private val productRepository: ProductRepositoryImpl
+    private val productRepository: ProductRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())

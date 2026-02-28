@@ -21,7 +21,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "jefferson_antenas.db"
-        ).fallbackToDestructiveMigration() // Limpa o banco se mudarmos a estrutura (bom para dev)
+        ).fallbackToDestructiveMigration() // ATENÇÃO: apaga dados locais ao mudar schema — substituir por migrations antes de produção
             .build()
     }
 }

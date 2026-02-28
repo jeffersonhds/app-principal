@@ -2,12 +2,15 @@ package com.jefferson.antenas.ui.screens.orders
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -41,10 +44,13 @@ class OrdersViewModel @Inject constructor(
         _isLoading.value = true
         _error.value = null
 
-        firestore.collection("orders")
-            .whereEqualTo("userId", uid)
-            .get()
-            .addOnSuccessListener { snapshot ->
+        viewModelScope.launch {
+            try {
+                val snapshot = firestore.collection("orders")
+                    .whereEqualTo("userId", uid)
+                    .get()
+                    .await()
+
                 val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale("pt", "BR"))
                 val orderList = snapshot.documents.mapNotNull { doc ->
                     try {
@@ -91,12 +97,12 @@ class OrdersViewModel @Inject constructor(
                 }.sortedByDescending { it.createdAtEpoch }
 
                 _orders.value = orderList
-                _isLoading.value = false
-            }
-            .addOnFailureListener { e ->
+            } catch (e: Exception) {
                 Log.e("OrdersViewModel", "Erro ao carregar pedidos", e)
                 _error.value = "Erro ao carregar pedidos. Tente novamente."
+            } finally {
                 _isLoading.value = false
             }
+        }
     }
 }

@@ -48,62 +48,43 @@ class AuthViewModel @Inject constructor(
 
     private suspend fun loginWithRetry(email: String, password: String, tentativa: Int = 1) {
         try {
-            val startTime = System.currentTimeMillis()
-            Log.d("AuthViewModel", "🔐 TENTATIVA $tentativa - LOGIN com email: $email")
-
-            // ✅ TIMEOUT DE 30 SEGUNDOS (para internet lenta)
-            Log.d("AuthViewModel", "📱 Chamando Firebase Auth (timeout: 30s, tentativa $tentativa/3)...")
+            Log.d("AuthViewModel", "Login tentativa $tentativa/3")
 
             val success = withTimeoutOrNull(30000L) {
                 auth.signInWithEmailAndPassword(email, password).await()
                 true
             }
 
-            val authTime = System.currentTimeMillis() - startTime
-            Log.d("AuthViewModel", "⏱️ Firebase respondeu em ${authTime}ms")
-
             if (success == true) {
-                Log.d("AuthViewModel", "✅ LOGIN SUCESSO na tentativa $tentativa! Tempo: ${authTime}ms")
                 _authState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
             } else {
-                // ✅ SE TIMEOUT, TENTA NOVAMENTE ATÉ 3 VEZES
                 if (tentativa < 3) {
-                    Log.w("AuthViewModel", "⏱️ TIMEOUT na tentativa $tentativa, tentando novamente em 2s...")
+                    Log.w("AuthViewModel", "Timeout no login, tentativa $tentativa/3")
                     _authState.update { it.copy(error = "Reconectando... (tentativa $tentativa/3)") }
                     delay(2000)
                     loginWithRetry(email, password, tentativa + 1)
                 } else {
-                    Log.e("AuthViewModel", "❌ FALHA após 3 tentativas")
+                    Log.e("AuthViewModel", "Falha após 3 tentativas de login")
                     _authState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Servidor indisponível. Tente em alguns minutos."
-                        )
+                        it.copy(isLoading = false, error = "Servidor indisponível. Tente em alguns minutos.")
                     }
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Log.e("AuthViewModel", "⏱️ TIMEOUT na tentativa $tentativa")
             if (tentativa < 3) {
-                Log.w("AuthViewModel", "🔄 Tentando novamente...")
+                Log.w("AuthViewModel", "Timeout no login tentativa $tentativa/3")
                 _authState.update { it.copy(error = "Reconectando... (tentativa $tentativa/3)") }
                 delay(2000)
                 loginWithRetry(email, password, tentativa + 1)
             } else {
                 _authState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Sem conexão com servidor. Verifique sua internet."
-                    )
+                    it.copy(isLoading = false, error = "Sem conexão com servidor. Verifique sua internet.")
                 }
             }
         } catch (e: Exception) {
-            Log.e("AuthViewModel", "❌ ERRO: ${e.message}", e)
+            Log.e("AuthViewModel", "Erro no login: ${e.message}", e)
             _authState.update {
-                it.copy(
-                    isLoading = false,
-                    error = e.message ?: "Erro ao fazer login."
-                )
+                it.copy(isLoading = false, error = e.message ?: "Erro ao fazer login.")
             }
         }
     }
@@ -123,11 +104,7 @@ class AuthViewModel @Inject constructor(
 
     private suspend fun signUpWithRetry(name: String, email: String, password: String, tentativa: Int = 1) {
         try {
-            val startTime = System.currentTimeMillis()
-            Log.d("AuthViewModel", "📝 TENTATIVA $tentativa - SIGNUP com email: $email")
-
-            // ✅ CRIAR USUÁRIO COM TIMEOUT DE 30 SEGUNDOS
-            Log.d("AuthViewModel", "📱 Criando usuário (timeout: 30s, tentativa $tentativa/3)...")
+            Log.d("AuthViewModel", "SignUp tentativa $tentativa/3")
 
             val authResult = withTimeoutOrNull(30000L) {
                 auth.createUserWithEmailAndPassword(email, password).await()
@@ -135,90 +112,55 @@ class AuthViewModel @Inject constructor(
 
             if (authResult == null) {
                 if (tentativa < 3) {
-                    Log.w("AuthViewModel", "⏱️ TIMEOUT na tentativa $tentativa, tentando novamente...")
+                    Log.w("AuthViewModel", "Timeout no signUp tentativa $tentativa/3")
                     _authState.update { it.copy(error = "Reconectando... (tentativa $tentativa/3)") }
                     delay(2000)
                     signUpWithRetry(name, email, password, tentativa + 1)
                 } else {
                     _authState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Servidor indisponível. Tente em alguns minutos."
-                        )
+                        it.copy(isLoading = false, error = "Servidor indisponível. Tente em alguns minutos.")
                     }
                 }
                 return
             }
 
-            val authTime = System.currentTimeMillis() - startTime
-            Log.d("AuthViewModel", "✅ Firebase Auth concluído em ${authTime}ms")
-
             val firebaseUser = authResult.user
 
             if (firebaseUser != null) {
-                val newUser = User(
-                    uid = firebaseUser.uid,
-                    name = name,
-                    email = email,
-                    points = 0
-                )
-
-                Log.d("AuthViewModel", "☁️ Salvando no Firestore (timeout: 20s)...")
-                val firestoreStart = System.currentTimeMillis()
+                val newUser = User(uid = firebaseUser.uid, name = name, email = email, points = 0)
 
                 val savedSuccessfully = withTimeoutOrNull(20000L) {
-                    firestore.collection("users")
-                        .document(firebaseUser.uid)
-                        .set(newUser)
-                        .await()
+                    firestore.collection("users").document(firebaseUser.uid).set(newUser).await()
                     true
                 }
 
-                val firestoreTime = System.currentTimeMillis() - firestoreStart
-                Log.d("AuthViewModel", "⏱️ Firestore respondeu em ${firestoreTime}ms")
-
                 if (savedSuccessfully == true) {
                     _authState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
-                    Log.d("AuthViewModel", "🎉 SIGNUP SUCESSO! Tempo total: ${System.currentTimeMillis() - startTime}ms")
                 } else {
+                    Log.e("AuthViewModel", "Timeout ao salvar perfil no Firestore")
                     _authState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Erro ao salvar perfil. Tente fazer login."
-                        )
+                        it.copy(isLoading = false, error = "Erro ao salvar perfil. Tente fazer login.")
                     }
-                    Log.e("AuthViewModel", "❌ TIMEOUT ao salvar no Firestore")
                 }
             } else {
-                _authState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Erro ao criar usuário."
-                    )
-                }
-                Log.e("AuthViewModel", "❌ Firebase User é null")
+                Log.e("AuthViewModel", "Firebase User é null após createUserWithEmailAndPassword")
+                _authState.update { it.copy(isLoading = false, error = "Erro ao criar usuário.") }
             }
         } catch (e: TimeoutCancellationException) {
-            Log.e("AuthViewModel", "⏱️ TIMEOUT SIGNUP na tentativa $tentativa")
             if (tentativa < 3) {
+                Log.w("AuthViewModel", "Timeout no signUp tentativa $tentativa/3")
                 _authState.update { it.copy(error = "Reconectando... (tentativa $tentativa/3)") }
                 delay(2000)
                 signUpWithRetry(name, email, password, tentativa + 1)
             } else {
                 _authState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Servidor indisponível. Tente em alguns minutos."
-                    )
+                    it.copy(isLoading = false, error = "Servidor indisponível. Tente em alguns minutos.")
                 }
             }
         } catch (e: Exception) {
-            Log.e("AuthViewModel", "❌ ERRO SIGNUP: ${e.message}", e)
+            Log.e("AuthViewModel", "Erro no signUp: ${e.message}", e)
             _authState.update {
-                it.copy(
-                    isLoading = false,
-                    error = e.message ?: "Erro ao cadastrar."
-                )
+                it.copy(isLoading = false, error = e.message ?: "Erro ao cadastrar.")
             }
         }
     }

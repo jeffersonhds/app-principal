@@ -72,7 +72,7 @@ class TravelCostViewModel @Inject constructor(
                         json.getJSONArray("routes").getJSONObject(0).getDouble("distance") / 1000.0
                     } catch (e: Exception) {
                         // Fallback: Haversine × 1.3 (correção de estrada)
-                        Log.w("TravelCostViewModel", "OSRM falhou, usando Haversine como fallback: ${e.message}")
+                        Log.d("TravelCostViewModel", "OSRM indisponível, usando Haversine como fallback: ${e.message}")
                         haversineKm(STORE_LAT, STORE_LON, destLat, destLon) * 1.3
                     }
                 }

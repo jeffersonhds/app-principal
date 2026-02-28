@@ -186,7 +186,13 @@ class CheckoutViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("CheckoutViewModel", "Erro ao salvar pedido no Firestore", e)
                 cartRepository.clearCart()
-                _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
+                _uiState.update {
+                    it.copy(
+                        isPaymentSuccessful = true,
+                        paymentInfo = null,
+                        error = "Pagamento aprovado, mas houve um erro ao registrar seu pedido. Anote o comprovante e entre em contato com o suporte."
+                    )
+                }
                 return@launch
             }
 

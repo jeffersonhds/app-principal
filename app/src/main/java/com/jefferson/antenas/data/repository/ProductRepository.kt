@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface ProductRepository {
     // Usamos 'Result' para tratar erros de forma elegante (Sucesso ou Falha)
     suspend fun getProducts(): Result<List<Product>>
-    suspend fun getProductById(productId: String): Result<Product?> // Adicionado
+    suspend fun getProductById(productId: String): Result<Product?>
     suspend fun getBanners(): Result<List<Banner>>
+    suspend fun clearCache()
 }

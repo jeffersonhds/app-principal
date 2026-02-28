@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 data class ProfileUiState(
@@ -43,20 +44,20 @@ class ProfileViewModel @Inject constructor(
             return
         }
 
-        _uiState.update { it.copy(isLoading = true) }
-        firestore.collection("users").document(firebaseUser.uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val document = firestore.collection("users").document(firebaseUser.uid).get().await()
+                if (document.exists()) {
                     val user = document.toObject(User::class.java)
                     _uiState.update { it.copy(isLoading = false, user = user) }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = "Perfil de usuário não encontrado.") }
                 }
-            }
-            .addOnFailureListener { e ->
+            } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = "Erro ao buscar perfil: ${e.message}") }
             }
+        }
     }
 
     fun logout() {

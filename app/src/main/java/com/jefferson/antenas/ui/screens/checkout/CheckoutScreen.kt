@@ -2,6 +2,7 @@ package com.jefferson.antenas.ui.screens.checkout
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -170,7 +171,9 @@ fun CheckoutScreen(
                                     URLEncoder.encode(msg, "UTF-8")
                                 }"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                            } catch (_: Exception) {}
+                            } catch (_: Exception) {
+                                Toast.makeText(context, "WhatsApp não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
+                            }
                         }
                     }
                 }

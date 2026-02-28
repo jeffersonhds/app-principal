@@ -110,6 +110,7 @@ data class Order(
     val items: List<OrderItem>,
     val total: Double,
     val date: String,
+    val createdAtEpoch: Long = 0L,
     val estimatedDelivery: String? = null,
     val trackingCode: String? = null,
     val deliveredDate: String? = null
@@ -163,7 +164,7 @@ fun OrdersScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(error!!, color = SignalOrange, textAlign = TextAlign.Center, fontSize = 14.sp)
+                    Text(error ?: "", color = SignalOrange, textAlign = TextAlign.Center, fontSize = 14.sp)
                     Button(
                         onClick = { viewModel.loadOrders() },
                         colors = ButtonDefaults.buttonColors(containerColor = SignalOrange),
@@ -480,7 +481,7 @@ private fun OrderCard(
 
                     // First product preview
                     Text(
-                        order.items.first().name +
+                        (order.items.firstOrNull()?.name ?: "Produto") +
                                 if (order.items.size > 1) " +${order.items.size - 1} item(s)" else "",
                         color = TextPrimary,
                         fontWeight = FontWeight.SemiBold,

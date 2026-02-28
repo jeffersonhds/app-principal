@@ -79,6 +79,7 @@ class OrdersViewModel @Inject constructor(
                             items = orderItems,
                             total = total,
                             date = dateStr,
+                            createdAtEpoch = timestamp?.seconds ?: 0L,
                             trackingCode = doc.getString("trackingCode"),
                             estimatedDelivery = doc.getString("estimatedDelivery"),
                             deliveredDate = doc.getString("deliveredDate")
@@ -87,7 +88,7 @@ class OrdersViewModel @Inject constructor(
                         Log.e("OrdersViewModel", "Erro ao mapear pedido ${doc.id}", e)
                         null
                     }
-                }.sortedByDescending { it.date }
+                }.sortedByDescending { it.createdAtEpoch }
 
                 _orders.value = orderList
                 _isLoading.value = false

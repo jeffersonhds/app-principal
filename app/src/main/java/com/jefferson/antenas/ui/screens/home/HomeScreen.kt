@@ -189,7 +189,7 @@ fun HomeScreen(
                 when {
                     isLoading -> HomeProductsShimmer()
                     errorMessage != null -> HomeErrorState(
-                        message = errorMessage!!,
+                        message = errorMessage ?: "",
                         onRetry = { viewModel.retry() }
                     )
                     else -> HomeProductsRow(

@@ -207,7 +207,7 @@ fun StoreScreen(
                                     modifier = Modifier.size(52.dp)
                                 )
                                 Text(
-                                    errorMessage!!,
+                                    errorMessage ?: "",
                                     color = TextSecondary,
                                     fontSize = 14.sp,
                                     textAlign = TextAlign.Center

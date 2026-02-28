@@ -124,6 +124,7 @@ private val activeStatuses = listOf(OrderStatus.PROCESSING, OrderStatus.CONFIRME
 fun OrdersScreen(
     onBackClick: () -> Unit,
     onShopClick: () -> Unit,
+    onOrderClick: (String) -> Unit = {},
     viewModel: OrdersViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -199,6 +200,7 @@ fun OrdersScreen(
                 items(filteredOrders, key = { it.id }) { order ->
                     OrderCard(
                         order = order,
+                        onOrderClick = { onOrderClick(order.id) },
                         onTrackClick = {
                             val msg = "Olá! Gostaria de rastrear meu pedido *#${order.number}*. Pode me ajudar?"
                             WhatsAppHelper.openWhatsApp(context, WHATSAPP_NUMBER, msg)
@@ -413,6 +415,7 @@ private fun OrdersTabRow(
 @Composable
 private fun OrderCard(
     order: Order,
+    onOrderClick: () -> Unit,
     onTrackClick: () -> Unit,
     onSupportClick: () -> Unit
 ) {
@@ -435,7 +438,7 @@ private fun OrderCard(
         Column {
             // ── Header (tappable) ────────────────────────────
             Surface(
-                onClick = { expanded = !expanded },
+                onClick = onOrderClick,
                 color = Color.Transparent,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {

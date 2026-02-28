@@ -174,6 +174,10 @@ fun ProfileScreen(
     onDownloadsClick: () -> Unit = {},
     onSupportClick: () -> Unit = {},
     onFaqClick: () -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
+    onSecurityClick: () -> Unit = {},
+    onAboutClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -305,7 +309,10 @@ fun ProfileScreen(
                         onDownloadsClick = onDownloadsClick,
                         onSupportClick = onSupportClick,
                         onFaqClick = onFaqClick,
-                        onComingSoon = { showComingSoon(it) }
+                        onEditProfileClick = onEditProfileClick,
+                        onSecurityClick = onSecurityClick,
+                        onAboutClick = onAboutClick,
+                        onPrivacyClick = onPrivacyClick
                     )
                 }
 
@@ -339,7 +346,10 @@ private fun ProfileContent(
     onDownloadsClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFaqClick: () -> Unit,
-    onComingSoon: (String) -> Unit
+    onEditProfileClick: () -> Unit,
+    onSecurityClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    onPrivacyClick: () -> Unit
 ) {
     val tier = getTier(user.points)
     val nextTier = getNextTier(user.points)
@@ -384,40 +394,16 @@ private fun ProfileContent(
                 icon = Icons.Default.Person,
                 iconColor = SatelliteBlue,
                 title = "Editar Perfil",
-                subtitle = "Nome, foto e dados pessoais",
-                onClick = { onComingSoon("Editar Perfil") }
-            )
-            ProfileMenuDivider()
-            ProfileMenuItem(
-                icon = Icons.Default.Notifications,
-                iconColor = SignalOrange,
-                title = "Notificações",
-                subtitle = "Promoções, pedidos e novidades",
-                onClick = { onComingSoon("Notificações") }
-            )
-            ProfileMenuDivider()
-            ProfileMenuItem(
-                icon = Icons.Default.LocationOn,
-                iconColor = SuccessGreen,
-                title = "Meus Endereços",
-                subtitle = "Gerenciar endereços de entrega",
-                onClick = { onComingSoon("Meus Endereços") }
-            )
-            ProfileMenuDivider()
-            ProfileMenuItem(
-                icon = Icons.Default.CreditCard,
-                iconColor = AccentPink,
-                title = "Formas de Pagamento",
-                subtitle = "Cartões e métodos salvos",
-                onClick = { onComingSoon("Formas de Pagamento") }
+                subtitle = "Nome e dados pessoais",
+                onClick = onEditProfileClick
             )
             ProfileMenuDivider()
             ProfileMenuItem(
                 icon = Icons.Default.Lock,
                 iconColor = WarningYellow,
                 title = "Segurança",
-                subtitle = "Senha e autenticação",
-                onClick = { onComingSoon("Segurança") }
+                subtitle = "Alterar senha",
+                onClick = onSecurityClick
             )
         }
 
@@ -449,7 +435,7 @@ private fun ProfileContent(
                 iconColor = TextTertiary,
                 title = "Sobre o Aplicativo",
                 subtitle = "Versão 1.0.0 • Jefferson Antenas",
-                onClick = { onComingSoon("Sobre o App") }
+                onClick = onAboutClick
             )
             ProfileMenuDivider()
             ProfileMenuItem(
@@ -457,7 +443,7 @@ private fun ProfileContent(
                 iconColor = TextTertiary,
                 title = "Termos e Privacidade",
                 subtitle = "Política de uso e dados",
-                onClick = { onComingSoon("Termos e Privacidade") }
+                onClick = onPrivacyClick
             )
         }
 

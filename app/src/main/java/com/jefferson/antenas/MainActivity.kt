@@ -31,6 +31,11 @@ import com.jefferson.antenas.ui.screens.profile.ProfileScreen
 import com.jefferson.antenas.ui.screens.search.SearchScreen
 import com.jefferson.antenas.ui.screens.services.ServicesScreen
 import com.jefferson.antenas.ui.screens.splash.SplashScreen
+import com.jefferson.antenas.ui.screens.profile.EditProfileScreen
+import com.jefferson.antenas.ui.screens.profile.SecurityScreen
+import com.jefferson.antenas.ui.screens.profile.AboutScreen
+import com.jefferson.antenas.ui.screens.profile.PrivacyScreen
+import com.jefferson.antenas.ui.screens.orders.OrderDetailScreen
 import com.jefferson.antenas.ui.screens.store.StoreScreen
 import com.jefferson.antenas.ui.screens.support.SupportScreen
 import com.jefferson.antenas.ui.theme.JeffersonAntenasAppTheme
@@ -52,7 +57,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
 
-    val hideBottomBarRoutes = listOf("splash", "login", "signup", "checkout", "product/{productId}", "cart", "search", "orders", "favorites")
+    val hideBottomBarRoutes = listOf("splash", "login", "signup", "checkout", "product/{productId}", "cart", "search", "orders", "favorites", "edit_profile", "security", "about", "privacy", "order_detail/{orderId}")
 
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry.value?.destination?.route
@@ -123,7 +128,8 @@ fun MainScreen() {
             composable("orders") {
                 OrdersScreen(
                     onBackClick = { navController.popBackStack() },
-                    onShopClick = { navController.navigate("store") }
+                    onShopClick = { navController.navigate("store") },
+                    onOrderClick = { id -> navController.navigate("order_detail/$id") }
                 )
             }
             composable("favorites") {
@@ -144,8 +150,30 @@ fun MainScreen() {
                     onFavoritesClick = { navController.navigate("favorites") },
                     onDownloadsClick = { navController.navigate("downloads") },
                     onSupportClick = { navController.navigate("support") },
-                    onFaqClick = { navController.navigate("support") }
+                    onFaqClick = { navController.navigate("support") },
+                    onEditProfileClick = { navController.navigate("edit_profile") },
+                    onSecurityClick = { navController.navigate("security") },
+                    onAboutClick = { navController.navigate("about") },
+                    onPrivacyClick = { navController.navigate("privacy") }
                 )
+            }
+            composable("edit_profile") {
+                EditProfileScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable("security") {
+                SecurityScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable("about") {
+                AboutScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable("privacy") {
+                PrivacyScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable(
+                route = "order_detail/{orderId}",
+                arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+            ) {
+                OrderDetailScreen(onBackClick = { navController.popBackStack() })
             }
             composable("search") {
                 SearchScreen(

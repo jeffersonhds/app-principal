@@ -186,7 +186,7 @@ private val downloadBrands = listOf(
     ),
 )
 
-private const val WHATSAPP_NUMBER = "5565992895296"
+private val WHATSAPP_NUMBER get() = com.jefferson.antenas.utils.WHATSAPP_PHONE
 
 // ─────────────────────────────────────────────────────────────
 // Screen

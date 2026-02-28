@@ -85,7 +85,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 
-private const val WHATSAPP_NUMBER = "5565992895296"
+private val WHATSAPP_NUMBER get() = com.jefferson.antenas.utils.WHATSAPP_PHONE
 
 // ── Data Models ──────────────────────────────────────────────────────────────
 

@@ -3,6 +3,7 @@ package com.jefferson.antenas.ui.screens.cart
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -204,7 +205,7 @@ fun CartScreen(
                     installment = installment,
                     onCheckout = onCheckoutClick,
                     onWhatsApp = {
-                        val phone = "5565992895296"
+                        val phone = WHATSAPP_PHONE
                         val itemList = items.joinToString("\n") {
                             "• ${it.product.name} x${it.quantity} — ${it.total.toCurrency()}"
                         }

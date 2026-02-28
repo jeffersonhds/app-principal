@@ -3,6 +3,7 @@ package com.jefferson.antenas.ui.screens.product
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -91,7 +92,7 @@ fun ProductDetailScreen(
                         }
                     },
                     onWhatsApp = {
-                        val phone = "5565992895296"
+                        val phone = WHATSAPP_PHONE
                         val msg = "Olá Jefferson! Tenho interesse no produto: *${product.name}*\n" +
                                 "Preço: ${(product.getDiscountedPrice() * quantity).toCurrency()}\n" +
                                 "Quantidade: $quantity"
@@ -787,7 +788,7 @@ fun ProductDetailScreen(
                                     // Botão WhatsApp
                                     OutlinedButton(
                                         onClick = {
-                                            val phone = "5565992895296"
+                                            val phone = WHATSAPP_PHONE
                                             val msg = "Olá Jefferson! Gostaria de tirar dúvidas sobre um produto."
                                             try {
                                                 val url = "https://api.whatsapp.com/send?phone=$phone&text=${

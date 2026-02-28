@@ -3,6 +3,7 @@ package com.jefferson.antenas.ui.screens.home
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -143,7 +144,7 @@ fun HomeScreen(
                     onButtonClick = { bannerId ->
                         when (bannerId) {
                             "2" -> {
-                                val phone = "5565992895296"
+                                val phone = WHATSAPP_PHONE
                                 val msg = "Olá Jefferson! Vim pelo aplicativo e gostaria de agendar uma instalação."
                                 try {
                                     val url = "https://api.whatsapp.com/send?phone=$phone&text=${
@@ -902,31 +903,6 @@ private fun HomeProductCard(
                     lineHeight = 16.sp
                 )
                 Spacer(Modifier.height(3.dp))
-                // Estrelas de avaliação
-                val starVal = 4.5f + (product.id.sumOf { it.code } % 5) * 0.1f
-                val reviewCnt = 50 + product.id.sumOf { it.code } % 150
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Star, null,
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(9.dp)
-                    )
-                    Text(
-                        String.format("%.1f", starVal),
-                        fontSize = 9.sp,
-                        color = Color(0xFFFFC107),
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        " ($reviewCnt)",
-                        fontSize = 9.sp,
-                        color = TextTertiary
-                    )
-                }
-                Spacer(Modifier.height(3.dp))
                 if (hasDiscount) {
                     Text(
                         product.price,
@@ -1259,7 +1235,7 @@ private fun ImprovedReviewCard(review: ReviewItem) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            review.author.first().toString(),
+                            (review.author.firstOrNull() ?: "?").toString(),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = SatelliteBlue

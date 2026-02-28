@@ -141,6 +141,7 @@ class CheckoutViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                Log.e("CheckoutViewModel", "Erro ao buscar CEP: ${e.message}", e)
                 _uiState.update { it.copy(isCepLoading = false, error = "CEP não encontrado. Verifique e tente novamente.") }
             }
         }

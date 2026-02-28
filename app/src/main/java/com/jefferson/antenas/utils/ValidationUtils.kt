@@ -7,20 +7,16 @@ package com.jefferson.antenas.utils
  */
 object ValidationUtils {
 
-    // Regex para validação de email
-    // Aceita: user@example.com, user+tag@example.co.uk, etc
-    private val EMAIL_REGEX = Regex(
-        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-    )
-
     /**
-     * Valida se um email está no formato correto
+     * Valida se um email está no formato correto usando android.util.Patterns,
+     * consistente com o resto do app (AuthViewModel, LoginScreen).
      *
      * @param email String a validar
      * @return true se email é válido, false caso contrário
      */
     fun isValidEmail(email: String): Boolean {
-        return email.isNotBlank() && email.matches(EMAIL_REGEX)
+        return email.isNotBlank() &&
+                android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     /**
@@ -41,7 +37,7 @@ object ValidationUtils {
      * @return true se nome é válido, false caso contrário
      */
     fun isValidName(name: String): Boolean {
-        return name.isNotBlank()
+        return name.isNotBlank() && name.trim().length >= 3
     }
 
     /**

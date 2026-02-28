@@ -3,6 +3,7 @@ package com.jefferson.antenas.ui.screens.checkout
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -157,7 +158,7 @@ fun CheckoutScreen(
                     when (selectedPayment) {
                         PaymentMethod.CARD -> viewModel.preparePayment()
                         PaymentMethod.PIX, PaymentMethod.WHATSAPP -> {
-                            val phone = "5565992895296"
+                            val phone = WHATSAPP_PHONE
                             val method = if (selectedPayment == PaymentMethod.PIX) "PIX" else "WhatsApp"
                             val msg = "Olá Jefferson! Quero finalizar um pedido.\n" +
                                     "Nome: ${uiState.name}\n" +
@@ -308,7 +309,7 @@ fun CheckoutScreen(
                         isSelected = isSelected,
                         onClick = { selectedDelivery = option }
                     )
-                    if (option != DeliveryOption.entries.last()) {
+                    if (option != DeliveryOption.entries.lastOrNull()) {
                         Spacer(Modifier.height(8.dp))
                     }
                 }
@@ -331,7 +332,7 @@ fun CheckoutScreen(
                         installment = cartTotal / 12.0,
                         onClick = { selectedPayment = method }
                     )
-                    if (method != PaymentMethod.entries.last()) {
+                    if (method != PaymentMethod.entries.lastOrNull()) {
                         Spacer(Modifier.height(8.dp))
                     }
                 }

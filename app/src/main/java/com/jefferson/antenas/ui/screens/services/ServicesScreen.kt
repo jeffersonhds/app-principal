@@ -293,7 +293,7 @@ private val testimonials = listOf(
     )
 )
 
-private const val WHATSAPP_NUMBER = "5565992895296"
+private val WHATSAPP_NUMBER get() = com.jefferson.antenas.utils.WHATSAPP_PHONE
 
 // Coordenadas da base em Sapezal — MT
 private const val BASE_LAT = -13.5327

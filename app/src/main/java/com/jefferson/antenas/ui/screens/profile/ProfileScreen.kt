@@ -2,6 +2,7 @@ package com.jefferson.antenas.ui.screens.profile
 
 import android.content.Intent
 import android.net.Uri
+import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -273,7 +274,7 @@ fun ProfileScreen(
                     ProfileContent(
                         user = user,
                         onWhatsApp = {
-                            val phone = "5565992895296"
+                            val phone = WHATSAPP_PHONE
                             val msg = "Olá Jefferson! Preciso de suporte na minha conta."
                             try {
                                 val url = "https://api.whatsapp.com/send?phone=$phone&text=${

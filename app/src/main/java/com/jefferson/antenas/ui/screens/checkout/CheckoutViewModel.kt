@@ -149,7 +149,7 @@ class CheckoutViewModel @Inject constructor(
     fun onPaymentSuccess() {
         viewModelScope.launch {
             val currentUser = auth.currentUser
-            val cartItems: List<CartItem> = cartRepository.items.first()
+            val cartItems: List<CartItem> = cartRepository.items.value
             val totalAmount = cartTotal.value
             val state = uiState.value
 

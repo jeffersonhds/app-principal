@@ -1,7 +1,6 @@
 package com.jefferson.antenas.ui.screens.services
 
 import android.content.Intent
-import android.location.Geocoder
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -66,11 +65,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,15 +99,6 @@ import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.TextTertiary
 import com.jefferson.antenas.ui.theme.WarningYellow
 import com.jefferson.antenas.utils.WhatsAppHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Locale
-import kotlin.math.asin
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 // ─────────────────────────────────────────────────────────────
 // Data models
@@ -296,9 +287,6 @@ private val testimonials = listOf(
 private val WHATSAPP_NUMBER get() = com.jefferson.antenas.utils.WHATSAPP_PHONE
 
 // Coordenadas da base em Sapezal — MT
-private const val BASE_LAT = -13.5327
-private const val BASE_LON = -58.8189
-
 // ─────────────────────────────────────────────────────────────
 // Screen
 // ─────────────────────────────────────────────────────────────
@@ -925,25 +913,13 @@ private fun ServicesCoverageCard() {
 // ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun TravelCostCalculator() {
+private fun TravelCostCalculator(
+    viewModel: TravelCostViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsState()
 
     var addressInput by remember { mutableStateOf("") }
-    var resultKm by remember { mutableStateOf<Double?>(null) }
-    var isCalculating by remember { mutableStateOf(false) }
-    var errorMsg by remember { mutableStateOf<String?>(null) }
-
-    fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val r = 6371.0
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLon = Math.toRadians(lon2 - lon1)
-        val a = sin(dLat / 2).pow(2) +
-                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2)
-        return r * 2 * asin(sqrt(a))
-    }
-
-    fun travelCost(km: Double): Double = if (km <= 5.0) 0.0 else km * 2 * 2.5
 
     fun openMapsRoute() {
         val origin = "Sapezal, MT, Brasil"
@@ -958,30 +934,6 @@ private fun TravelCostCalculator() {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         } catch (_: Exception) {
             Toast.makeText(context, "Google Maps não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    fun calcDistance() {
-        if (addressInput.isBlank()) return
-        scope.launch {
-            isCalculating = true
-            errorMsg = null
-            resultKm = null
-            try {
-                val km = withContext(Dispatchers.IO) {
-                    if (!Geocoder.isPresent()) throw Exception("Serviço indisponível")
-                    @Suppress("DEPRECATION")
-                    val list = Geocoder(context, Locale("pt", "BR")).getFromLocationName(addressInput, 1)
-                    if (list.isNullOrEmpty()) throw Exception("Não encontrado")
-                    val addr = list[0]
-                    // distância em linha reta × fator de correção de estrada (1.3)
-                    haversineKm(BASE_LAT, BASE_LON, addr.latitude, addr.longitude) * 1.3
-                }
-                resultKm = km
-            } catch (_: Exception) {
-                errorMsg = "Endereço não encontrado. Informe cidade e estado (ex: Campos de Júlio, MT) ou use o botão \"Ver Rota\"."
-            }
-            isCalculating = false
         }
     }
 
@@ -1027,7 +979,7 @@ private fun TravelCostCalculator() {
             // ── Input ────────────────────────────────────────
             OutlinedTextField(
                 value = addressInput,
-                onValueChange = { addressInput = it; resultKm = null; errorMsg = null },
+                onValueChange = { addressInput = it; viewModel.reset() },
                 label = { Text("Seu endereço ou cidade", fontSize = 13.sp) },
                 placeholder = { Text("Ex: Campos de Júlio, MT", color = TextTertiary, fontSize = 13.sp) },
                 leadingIcon = {
@@ -1047,7 +999,7 @@ private fun TravelCostCalculator() {
                 ),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { calcDistance() }),
+                keyboardActions = KeyboardActions(onSearch = { viewModel.calcDistance(context, addressInput) }),
                 singleLine = true
             )
 
@@ -1056,8 +1008,8 @@ private fun TravelCostCalculator() {
             // ── Buttons ──────────────────────────────────────
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { calcDistance() },
-                    enabled = addressInput.isNotBlank() && !isCalculating,
+                    onClick = { viewModel.calcDistance(context, addressInput) },
+                    enabled = addressInput.isNotBlank() && !uiState.isCalculating,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = SignalOrange,
                         disabledContainerColor = CardGradientStart
@@ -1067,7 +1019,7 @@ private fun TravelCostCalculator() {
                         .weight(1f)
                         .height(42.dp)
                 ) {
-                    if (isCalculating) {
+                    if (uiState.isCalculating) {
                         CircularProgressIndicator(
                             color = Color.White,
                             modifier = Modifier.size(18.dp),
@@ -1098,14 +1050,14 @@ private fun TravelCostCalculator() {
             }
 
             // ── Error ────────────────────────────────────────
-            errorMsg?.let { err ->
+            uiState.errorMsg?.let { err ->
                 Spacer(Modifier.height(10.dp))
                 Text(err, color = ErrorRed, fontSize = 12.sp, lineHeight = 16.sp)
             }
 
             // ── Result ───────────────────────────────────────
-            resultKm?.let { km ->
-                val cost = travelCost(km)
+            uiState.resultKm?.let { km ->
+                val cost = viewModel.travelCost(km)
                 Spacer(Modifier.height(14.dp))
                 HorizontalDivider(color = CardBorder, thickness = 0.5.dp)
                 Spacer(Modifier.height(14.dp))

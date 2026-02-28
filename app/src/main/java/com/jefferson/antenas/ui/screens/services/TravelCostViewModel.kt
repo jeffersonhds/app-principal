@@ -69,7 +69,9 @@ class TravelCostViewModel @Inject constructor(
                             }
                         val json = JSONObject(body)
                         if (json.optString("code") != "Ok") throw Exception("Rota não encontrada pelo OSRM")
-                        json.getJSONArray("routes").getJSONObject(0).getDouble("distance") / 1000.0
+                        val routes = json.optJSONArray("routes")
+                        if (routes == null || routes.length() == 0) throw Exception("Nenhuma rota retornada pelo OSRM")
+                        routes.getJSONObject(0).getDouble("distance") / 1000.0
                     } catch (e: Exception) {
                         // Fallback: Haversine × 1.3 (correção de estrada)
                         Log.d("TravelCostViewModel", "OSRM indisponível, usando Haversine como fallback: ${e.message}")

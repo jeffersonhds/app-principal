@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -80,7 +79,7 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val cartItems: List<CartItem> = cartRepository.items.first()
+                val cartItems: List<CartItem> = cartRepository.items.value
                 if (cartItems.isEmpty()) {
                     _uiState.update { it.copy(isLoading = false, error = "Seu carrinho está vazio.") }
                     return@launch

@@ -14,8 +14,8 @@ class CartRepository @Inject constructor() {
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items: StateFlow<List<CartItem>> = _items.asStateFlow()
 
-    // AGORA ACEITA QUANTIDADE (Padrão = 1 para funcionar na Home)
     fun addToCart(product: Product, quantityToAdd: Int = 1) {
+        if (quantityToAdd <= 0) return
         val currentList = _items.value.toMutableList()
         val existingItem = currentList.find { it.product.id == product.id }
 

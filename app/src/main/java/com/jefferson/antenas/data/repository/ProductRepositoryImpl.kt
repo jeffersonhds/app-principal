@@ -6,7 +6,7 @@ import com.jefferson.antenas.data.model.Banner
 import com.jefferson.antenas.data.model.Product
 import com.jefferson.antenas.data.remote.JeffersonApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -20,42 +20,26 @@ class ProductRepositoryImpl @Inject constructor(
 
     private val productDao = database.productDao()
 
-    // ✅ RETORNA PRODUTOS COM CACHE INTELIGENTE
     override suspend fun getProducts(): Result<List<Product>> {
         return try {
-            val startTime = System.currentTimeMillis()
-            Log.d("ProductRepository", "🌐 Buscando produtos da API...")
-
-            // 1. Tenta buscar da API
             val productsFromApi = api.getProducts()
-            val apiTime = System.currentTimeMillis() - startTime
-            Log.d("ProductRepository", "✅ API respondeu em ${apiTime}ms com ${productsFromApi.size} produtos")
-
-            // 2. Salva no banco local (cache)
-            Log.d("ProductRepository", "💾 Salvando ${productsFromApi.size} produtos no banco local...")
             productDao.insertProducts(productsFromApi)
-            Log.d("ProductRepository", "✅ Produtos salvos no banco")
-
+            Log.d("ProductRepository", "${productsFromApi.size} produtos carregados da API e cacheados")
             Result.success(productsFromApi)
-
         } catch (e: Exception) {
-            // ❌ API falhou, tenta buscar do cache local
             val errorMsg = apiErrorMessage(e)
-            Log.e("ProductRepository", "❌ Erro na API: $errorMsg")
-            Log.d("ProductRepository", "📦 Tentando carregar do cache local...")
-
+            Log.e("ProductRepository", "API falhou: $errorMsg — tentando cache local")
             return try {
-                val cachedList = productDao.getAllProducts().first()
-
+                val cachedList = productDao.getAllProducts().firstOrNull() ?: emptyList()
                 if (cachedList.isNotEmpty()) {
-                    Log.d("ProductRepository", "✅ ${cachedList.size} produtos carregados do cache")
+                    Log.d("ProductRepository", "${cachedList.size} produtos carregados do cache")
                     Result.success(cachedList)
                 } else {
-                    Log.e("ProductRepository", "❌ Sem cache disponível")
+                    Log.e("ProductRepository", "Sem cache disponível")
                     Result.failure(Exception(errorMsg))
                 }
             } catch (cacheException: Exception) {
-                Log.e("ProductRepository", "❌ Erro ao acessar cache: ${cacheException.message}")
+                Log.e("ProductRepository", "Erro ao acessar cache: ${cacheException.message}")
                 Result.failure(Exception(errorMsg))
             }
         }
@@ -76,36 +60,21 @@ class ProductRepositoryImpl @Inject constructor(
             "Erro inesperado: ${e.message}"
     }
 
-    // ✅ BUSCA UM PRODUTO ESPECIFICO
     override suspend fun getProductById(productId: String): Result<Product?> {
         return try {
-            Log.d("ProductRepository", "🔍 Buscando produto $productId...")
-
-            // 1. Tenta da API
             val product = api.getProductById(productId)
-
             if (product != null) {
-                // 2. Salva no cache
                 productDao.insertProduct(product)
-                Log.d("ProductRepository", "✅ Produto $productId carregado e cacheado")
                 Result.success(product)
             } else {
-                // 3. Se não encontrou na API, busca no cache
-                val cachedProduct = productDao.getProductById(productId)
-                Log.d("ProductRepository", "✅ Produto $productId carregado do cache")
-                Result.success(cachedProduct)
+                Result.success(productDao.getProductById(productId))
             }
         } catch (e: Exception) {
-            // ❌ API falhou, tenta cache
-            Log.e("ProductRepository", "❌ Erro na API para produto $productId: ${e.message}")
+            Log.e("ProductRepository", "API falhou para produto $productId: ${e.message} — tentando cache")
             return try {
                 val cachedProduct = productDao.getProductById(productId)
-                if (cachedProduct != null) {
-                    Log.d("ProductRepository", "✅ Produto $productId carregado do cache")
-                    Result.success(cachedProduct)
-                } else {
-                    Result.failure(Exception("Produto não encontrado"))
-                }
+                if (cachedProduct != null) Result.success(cachedProduct)
+                else Result.failure(Exception("Produto não encontrado"))
             } catch (cacheException: Exception) {
                 Result.failure(cacheException)
             }
@@ -139,9 +108,8 @@ class ProductRepositoryImpl @Inject constructor(
     }
 
     // ✅ Limpar cache manualmente
-    suspend fun clearCache() {
-        Log.d("ProductRepository", "🗑️ Limpando cache...")
+    override suspend fun clearCache() {
         productDao.clearAllProducts()
-        Log.d("ProductRepository", "✅ Cache limpo")
+        Log.d("ProductRepository", "Cache limpo")
     }
 }

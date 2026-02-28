@@ -22,6 +22,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -104,10 +108,19 @@ fun FavoritesScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
     val isFavLoading by favoritesViewModel.isLoading.collectAsState()
+    val syncError by favoritesViewModel.syncError.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(syncError) {
+        syncError?.let { snackbarHostState.showSnackbar(it) }
+    }
 
     var selectedFilter by remember { mutableStateOf("Todos") }
     var sortOption by remember { mutableStateOf(FavSortOption.RELEVANCE) }
     var showSortMenu by remember { mutableStateOf(false) }
+    var isAddingAll by remember { mutableStateOf(false) }
 
     val savedProducts = products.filter { it.id in favoriteIds }
 
@@ -140,6 +153,11 @@ fun FavoritesScreen(
         containerColor = MidnightBlueStart,
         topBar = {
             FavoritesTopBar(count = favoriteIds.size, onBackClick = onBackClick)
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(snackbarData = data, containerColor = MidnightBlueStart.copy(alpha = 0.95f), contentColor = TextPrimary, actionColor = SignalOrange)
+            }
         }
     ) { padding ->
         if (isLoading || isFavLoading) {
@@ -222,7 +240,13 @@ fun FavoritesScreen(
                 item {
                     Spacer(Modifier.height(8.dp))
                     Button(
-                        onClick = { filteredProducts.forEach { viewModel.addToCart(it) } },
+                        onClick = {
+                            if (!isAddingAll) {
+                                isAddingAll = true
+                                filteredProducts.forEach { viewModel.addToCart(it) }
+                            }
+                        },
+                        enabled = !isAddingAll,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)

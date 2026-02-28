@@ -118,7 +118,7 @@ class ProductRepositoryImpl @Inject constructor(
             val response = api.getBanners()
             Result.success(response)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("ProductRepositoryImpl", "Erro ao carregar banners", e)
             Result.failure(e)
         }
     }

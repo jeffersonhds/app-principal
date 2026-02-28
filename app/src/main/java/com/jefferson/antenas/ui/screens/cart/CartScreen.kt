@@ -656,9 +656,9 @@ fun CartItemCard(
                         color = TextPrimary
                     )
                     if (hasDiscount) {
-                        val originalTotal = (item.product.price.trim()
-                            .replace("R$", "").replace(" ", "").replace(",", ".")
-                            .toDoubleOrNull() ?: item.total) * item.quantity
+                        val discountFactor = 1.0 - ((item.product.discount ?: 0).coerceIn(0, 100) / 100.0)
+                        val originalUnitPrice = if (discountFactor > 0) item.product.getDiscountedPrice() / discountFactor else item.product.getDiscountedPrice()
+                        val originalTotal = originalUnitPrice * item.quantity
                         val savedAmount = originalTotal - item.total
                         if (savedAmount > 0.01) {
                             Text(

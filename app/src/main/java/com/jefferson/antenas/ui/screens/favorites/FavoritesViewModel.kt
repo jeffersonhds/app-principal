@@ -22,6 +22,9 @@ class FavoritesViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _syncError = MutableStateFlow<String?>(null)
+    val syncError: StateFlow<String?> = _syncError.asStateFlow()
+
     init {
         loadFavorites()
     }
@@ -62,10 +65,11 @@ class FavoritesViewModel @Inject constructor(
             .update("favorites", current.toList())
             .addOnFailureListener { e ->
                 Log.e("FavoritesViewModel", "Erro ao salvar favorito $productId", e)
-                // Reverte em caso de falha
+                // Reverte o estado local em caso de falha
                 _favoriteIds.value = _favoriteIds.value.toMutableSet().also {
                     if (productId in it) it.remove(productId) else it.add(productId)
                 }
+                _syncError.value = "Falha ao sincronizar favoritos. Verifique sua conexão."
             }
     }
 }

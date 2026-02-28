@@ -264,13 +264,14 @@ fun ProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Icon(Icons.Default.Warning, null, tint = ErrorRed, modifier = Modifier.size(48.dp))
-                        Text(uiState.error!!, color = ErrorRed, textAlign = TextAlign.Center, fontSize = 14.sp)
+                        Text(uiState.error ?: "", color = ErrorRed, textAlign = TextAlign.Center, fontSize = 14.sp)
                     }
                 }
 
                 uiState.user != null -> {
+                    val user = uiState.user ?: return@Box
                     ProfileContent(
-                        user = uiState.user!!,
+                        user = user,
                         onWhatsApp = {
                             val phone = "5565992895296"
                             val msg = "Olá Jefferson! Preciso de suporte na minha conta."
@@ -279,7 +280,9 @@ fun ProfileScreen(
                                     URLEncoder.encode(msg, "UTF-8")
                                 }"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                            } catch (_: Exception) {}
+                            } catch (_: Exception) {
+                                scope.launch { snackbarHostState.showSnackbar("WhatsApp não encontrado. Instale o aplicativo.") }
+                            }
                         },
                         onShareReferral = {
                             try {
@@ -291,7 +294,9 @@ fun ProfileScreen(
                                     )
                                 }
                                 context.startActivity(Intent.createChooser(shareIntent, "Compartilhar"))
-                            } catch (_: Exception) {}
+                            } catch (_: Exception) {
+                                scope.launch { snackbarHostState.showSnackbar("Não foi possível compartilhar.") }
+                            }
                         },
                         onLogout = { showLogoutDialog = true },
                         onOrdersClick = onOrdersClick,

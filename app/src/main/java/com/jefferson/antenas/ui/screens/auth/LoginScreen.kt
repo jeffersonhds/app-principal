@@ -329,7 +329,7 @@ fun LoginScreen(
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                         TextButton(
                             onClick = { viewModel.sendPasswordReset(email) },
-                            enabled = !authState.isLoading
+                            enabled = !authState.isLoading && email.isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
                         ) {
                             Text("Esqueci minha senha?", color = SignalOrange, fontSize = 13.sp)
                         }

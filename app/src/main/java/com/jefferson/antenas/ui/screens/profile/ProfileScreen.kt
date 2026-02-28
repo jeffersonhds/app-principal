@@ -140,7 +140,7 @@ private val TIERS = listOf(
 )
 
 private fun getTier(points: Int): LoyaltyTier =
-    TIERS.lastOrNull { points >= it.minPoints } ?: TIERS.first()
+    TIERS.lastOrNull { points >= it.minPoints } ?: TIERS.firstOrNull() ?: TIERS[0]
 
 private fun getNextTier(points: Int): LoyaltyTier? =
     TIERS.firstOrNull { points < it.minPoints }

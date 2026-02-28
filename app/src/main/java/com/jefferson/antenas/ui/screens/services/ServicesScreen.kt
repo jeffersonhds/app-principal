@@ -3,6 +3,7 @@ package com.jefferson.antenas.ui.screens.services
 import android.content.Intent
 import android.location.Geocoder
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -953,7 +954,11 @@ private fun TravelCostCalculator() {
             "&destination=${Uri.encode(dest)}" +
             "&travelmode=driving"
         )
-        try { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) } catch (_: Exception) {}
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+        } catch (_: Exception) {
+            Toast.makeText(context, "Google Maps não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
+        }
     }
 
     fun calcDistance() {

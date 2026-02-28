@@ -2,6 +2,7 @@ package com.jefferson.antenas.ui.screens.product
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -99,7 +100,9 @@ fun ProductDetailScreen(
                                 URLEncoder.encode(msg, "UTF-8")
                             }"
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                        } catch (_: Exception) {}
+                        } catch (_: Exception) {
+                            Toast.makeText(context, "WhatsApp não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
+                        }
                     }
                 )
             }
@@ -791,7 +794,9 @@ fun ProductDetailScreen(
                                                     URLEncoder.encode(msg, "UTF-8")
                                                 }"
                                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                            } catch (_: Exception) {}
+                                            } catch (_: Exception) {
+                                                Toast.makeText(context, "WhatsApp não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
+                                            }
                                         },
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -1395,7 +1400,7 @@ private fun ReviewCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        name.first().toString(),
+                        (name.firstOrNull() ?: "?").toString(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = SatelliteBlue

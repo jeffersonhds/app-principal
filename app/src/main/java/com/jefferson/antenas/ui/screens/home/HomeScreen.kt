@@ -2,6 +2,7 @@ package com.jefferson.antenas.ui.screens.home
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -149,7 +150,9 @@ fun HomeScreen(
                                         URLEncoder.encode(msg, "UTF-8")
                                     }"
                                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                } catch (_: Exception) {}
+                                } catch (_: Exception) {
+                                    Toast.makeText(context, "WhatsApp não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
+                                }
                             }
                             else -> onStoreClick()
                         }
@@ -1443,7 +1446,9 @@ private fun WhatsAppCtaSection(context: android.content.Context) {
                                 URLEncoder.encode(msg, "UTF-8")
                             }"
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                        } catch (_: Exception) {}
+                        } catch (_: Exception) {
+                            Toast.makeText(context, "WhatsApp não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
+                        }
                     }
                 ) {
                     Text(

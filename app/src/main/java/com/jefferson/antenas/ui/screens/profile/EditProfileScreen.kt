@@ -25,6 +25,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Snackbar
@@ -64,7 +65,6 @@ fun EditProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Navega de volta após salvar com sucesso
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
             snackbarHostState.showSnackbar("Perfil atualizado com sucesso!")
@@ -96,8 +96,8 @@ fun EditProfileScreen(
                 Text(
                     "Editar Perfil",
                     color = TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -127,7 +127,7 @@ fun EditProfileScreen(
                             text = uiState.name.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                             color = SatelliteBlue,
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 32.sp
+                            fontSize = 32.sp   // tamanho especial do avatar — não existe equivalente no tema
                         )
                     }
 
@@ -137,7 +137,9 @@ fun EditProfileScreen(
                     OutlinedTextField(
                         value = uiState.name,
                         onValueChange = viewModel::onNameChange,
-                        label = { Text("Nome completo", fontSize = 13.sp) },
+                        label = {
+                            Text("Nome completo", style = MaterialTheme.typography.bodySmall)
+                        },
                         leadingIcon = {
                             Icon(Icons.Default.Person, null, tint = SatelliteBlue, modifier = Modifier.size(20.dp))
                         },
@@ -162,7 +164,11 @@ fun EditProfileScreen(
 
                     if (uiState.error != null) {
                         Spacer(Modifier.height(4.dp))
-                        Text(uiState.error!!, color = ErrorRed, fontSize = 12.sp)
+                        Text(
+                            uiState.error!!,
+                            color = ErrorRed,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
 
                     Spacer(Modifier.height(12.dp))
@@ -171,7 +177,9 @@ fun EditProfileScreen(
                     OutlinedTextField(
                         value = uiState.email,
                         onValueChange = {},
-                        label = { Text("E-mail", fontSize = 13.sp) },
+                        label = {
+                            Text("E-mail", style = MaterialTheme.typography.bodySmall)
+                        },
                         leadingIcon = {
                             Icon(Icons.Default.Email, null, tint = TextTertiary, modifier = Modifier.size(20.dp))
                         },
@@ -192,7 +200,7 @@ fun EditProfileScreen(
                     Text(
                         "O e-mail não pode ser alterado aqui.",
                         color = TextTertiary,
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.align(Alignment.Start)
                     )
 
@@ -219,8 +227,8 @@ fun EditProfileScreen(
                             Text(
                                 "  Salvar Alterações",
                                 color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }

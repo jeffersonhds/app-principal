@@ -5,7 +5,6 @@ import com.jefferson.antenas.data.local.AppDatabase
 import com.jefferson.antenas.data.model.Banner
 import com.jefferson.antenas.data.model.Product
 import com.jefferson.antenas.data.remote.JeffersonApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import retrofit2.HttpException
 import java.io.IOException
@@ -90,21 +89,6 @@ class ProductRepositoryImpl @Inject constructor(
             Log.e("ProductRepositoryImpl", "Erro ao carregar banners", e)
             Result.failure(e)
         }
-    }
-
-    // ✅ Retorna produtos como Flow (para observar mudanças em tempo real)
-    fun getProductsAsFlow(): Flow<List<Product>> {
-        return productDao.getAllProducts()
-    }
-
-    // ✅ Retorna produtos com desconto
-    fun getProductsWithDiscount(): Flow<List<Product>> {
-        return productDao.getProductsWithDiscount()
-    }
-
-    // ✅ Retorna produtos novos
-    fun getNewProducts(): Flow<List<Product>> {
-        return productDao.getNewProducts()
     }
 
     // ✅ Limpar cache manualmente

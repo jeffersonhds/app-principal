@@ -69,6 +69,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jefferson.antenas.data.model.Order
+import com.jefferson.antenas.data.model.OrderItem
 import com.jefferson.antenas.ui.theme.AccentPink
 import com.jefferson.antenas.ui.theme.CardBorder
 import com.jefferson.antenas.ui.theme.CardGradientStart
@@ -87,7 +89,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 private val WHATSAPP_NUMBER get() = com.jefferson.antenas.utils.WHATSAPP_PHONE
 
-// ── Data Models ──────────────────────────────────────────────────────────────
+// ── UI Models ──────────────────────────────────────────────────────────────
 
 enum class OrderStatus(val label: String, val icon: ImageVector, val color: Color) {
     PROCESSING("Processando", Icons.Default.HourglassEmpty, WarningYellow),
@@ -97,24 +99,17 @@ enum class OrderStatus(val label: String, val icon: ImageVector, val color: Colo
     CANCELLED("Cancelado", Icons.Default.Cancel, AccentPink)
 }
 
-data class OrderItem(
-    val name: String,
-    val quantity: Int,
-    val unitPrice: Double
-)
+/** Converte o campo statusStr do modelo de dados para o enum de UI */
+fun String.toOrderStatus(): OrderStatus = when (this) {
+    "processing" -> OrderStatus.PROCESSING
+    "shipped"    -> OrderStatus.SHIPPED
+    "delivered"  -> OrderStatus.DELIVERED
+    "cancelled"  -> OrderStatus.CANCELLED
+    else         -> OrderStatus.CONFIRMED
+}
 
-data class Order(
-    val id: String,
-    val number: String,
-    val status: OrderStatus,
-    val items: List<OrderItem>,
-    val total: Double,
-    val date: String,
-    val createdAtEpoch: Long = 0L,
-    val estimatedDelivery: String? = null,
-    val trackingCode: String? = null,
-    val deliveredDate: String? = null
-)
+/** Retorna o OrderStatus correspondente ao campo statusStr do Order */
+val Order.status: OrderStatus get() = statusStr.toOrderStatus()
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Satellite
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.jefferson.antenas.ui.theme.CardBorder
 import com.jefferson.antenas.ui.theme.MidnightBlueCard
 import com.jefferson.antenas.ui.theme.MidnightBlueEnd
@@ -79,7 +79,7 @@ fun AboutScreen(onBackClick: () -> Unit) {
                 "Sobre o Aplicativo",
                 color = TextPrimary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                style = MaterialTheme.typography.titleMedium
             )
         }
 
@@ -114,12 +114,12 @@ fun AboutScreen(onBackClick: () -> Unit) {
                 "Jefferson Antenas",
                 color = TextPrimary,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 24.sp
+                style = MaterialTheme.typography.headlineSmall
             )
             Text(
                 "Versão 1.0.0",
                 color = TextTertiary,
-                fontSize = 13.sp
+                style = MaterialTheme.typography.bodySmall
             )
 
             Spacer(Modifier.height(24.dp))
@@ -136,14 +136,14 @@ fun AboutScreen(onBackClick: () -> Unit) {
                         "Sobre a Empresa",
                         color = SignalOrange,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         "A Jefferson Antenas é especializada em instalação, manutenção e venda de equipamentos de TV por assinatura, antenas e acessórios em Sapezal — MT e região.",
                         color = TextSecondary,
-                        fontSize = 13.sp,
-                        lineHeight = 20.sp
+                        style = MaterialTheme.typography.bodySmall,
+                        lineHeight = MaterialTheme.typography.bodySmall.fontSize * 1.6f
                     )
                 }
             }
@@ -162,7 +162,7 @@ fun AboutScreen(onBackClick: () -> Unit) {
                         "Contato",
                         color = SignalOrange,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.height(12.dp))
 
@@ -195,7 +195,7 @@ fun AboutScreen(onBackClick: () -> Unit) {
             Text(
                 "Desenvolvido com ♥ para nossos clientes",
                 color = TextTertiary,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center
             )
 
@@ -238,8 +238,8 @@ private fun AboutContactRow(
                 Icon(icon, null, tint = iconColor, modifier = Modifier.size(18.dp))
             }
             Column {
-                Text(label, color = TextTertiary, fontSize = 11.sp)
-                Text(value, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(label, color = TextTertiary, style = MaterialTheme.typography.labelSmall)
+                Text(value, color = TextPrimary, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
             }
         }
     }

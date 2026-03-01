@@ -1,3 +1,5 @@
+import java.util.Properties
+
 // app/build.gradle.kts
 plugins {
     alias(libs.plugins.android.application)
@@ -9,6 +11,12 @@ plugins {
     // NOVO PLUGIN: Adicionado para o Firebase
     alias(libs.plugins.google.services)
 }
+
+// Lê a Stripe live key de local.properties (nunca vai ao git)
+val localProps = Properties()
+val localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) localProps.load(localPropsFile.inputStream())
+val stripeLiveKey: String = localProps.getProperty("STRIPE_LIVE_KEY") ?: ""
 
 android {
     namespace = "com.jefferson.antenas"
@@ -31,8 +39,8 @@ android {
         }
         release {
             isMinifyEnabled = true
-            // ⚠️ IMPORTANTE: Troque pela sua chave de PRODUÇÃO antes de fazer release
-            buildConfigField("String", "STRIPE_PUBLIC_KEY", "\"pk_live_SUBSTITUA_PELA_SUA_CHAVE_PRODUCAO\"")
+            // Chave lida de local.properties — nunca hardcoded no fonte
+            buildConfigField("String", "STRIPE_PUBLIC_KEY", "\"$stripeLiveKey\"")
             // Usa as regras do ficheiro proguard-rules.pro
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -97,6 +105,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.compose.runtime.saveable)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.remote.creation.core)
     ksp(libs.hilt.compiler) // KSP é mais rápido que KAPT
 
     // Room (Banco de Dados Local)

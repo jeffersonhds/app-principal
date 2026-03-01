@@ -776,7 +776,7 @@ private fun FlashSaleSection(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(products.take(6)) { product ->
+            items(products.take(6), key = { it.id }) { product ->
                 HomeProductCard(
                     product = product,
                     onClick = { onProductClick(product.id) },
@@ -1020,7 +1020,7 @@ private fun HomeProductsRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(products) { product ->
+        items(products, key = { it.id }) { product ->
             HomeProductCard(
                 product = product,
                 onClick = { onProductClick(product.id) },

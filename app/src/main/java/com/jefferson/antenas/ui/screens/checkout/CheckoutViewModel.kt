@@ -3,18 +3,19 @@ package com.jefferson.antenas.ui.screens.checkout
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
 import com.jefferson.antenas.data.model.CartItem
 import com.jefferson.antenas.data.model.CheckoutItemDto
 import com.jefferson.antenas.data.model.CheckoutRequest
 import com.jefferson.antenas.data.model.CheckoutResponse
 import com.jefferson.antenas.data.model.CustomerInfoDto
 import com.jefferson.antenas.data.remote.JeffersonApi
+import com.jefferson.antenas.data.repository.AddressRepository
 import com.jefferson.antenas.data.repository.CartRepository
+import com.jefferson.antenas.data.repository.OrderRepository
+import com.jefferson.antenas.data.repository.UserRepository
+import com.jefferson.antenas.domain.usecase.AwardPointsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,11 +24,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
 import javax.inject.Inject
 
 data class CheckoutUiState(
@@ -48,9 +44,10 @@ data class CheckoutUiState(
 class CheckoutViewModel @Inject constructor(
     private val cartRepository: CartRepository,
     private val api: JeffersonApi,
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
-    private val okHttpClient: OkHttpClient
+    private val userRepository: UserRepository,
+    private val orderRepository: OrderRepository,
+    private val addressRepository: AddressRepository,
+    private val awardPointsUseCase: AwardPointsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
@@ -64,15 +61,35 @@ class CheckoutViewModel @Inject constructor(
             initialValue = 0.0
         )
 
-    fun onNameChange(newValue: String) = _uiState.update { it.copy(name = newValue) }
-    fun onCepChange(newValue: String) = _uiState.update { it.copy(cep = newValue) }
-    fun onAddressChange(newValue: String) = _uiState.update { it.copy(address = newValue) }
-    fun onNeighborhoodChange(newValue: String) = _uiState.update { it.copy(neighborhood = newValue) }
-    fun onCityChange(newValue: String) = _uiState.update { it.copy(city = newValue) }
-    fun onPhoneChange(newValue: String) = _uiState.update { it.copy(phoneNumber = newValue) }
+    fun onNameChange(v: String) = _uiState.update { it.copy(name = v) }
+    fun onCepChange(v: String) = _uiState.update { it.copy(cep = v) }
+    fun onAddressChange(v: String) = _uiState.update { it.copy(address = v) }
+    fun onNeighborhoodChange(v: String) = _uiState.update { it.copy(neighborhood = v) }
+    fun onCityChange(v: String) = _uiState.update { it.copy(city = v) }
+    fun onPhoneChange(v: String) = _uiState.update { it.copy(phoneNumber = v) }
+
+    fun searchCep() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCepLoading = true, error = null) }
+            try {
+                val result = addressRepository.fetchAddress(uiState.value.cep)
+                _uiState.update { state ->
+                    state.copy(
+                        isCepLoading = false,
+                        address = result.logradouro.ifBlank { state.address },
+                        neighborhood = result.bairro.ifBlank { state.neighborhood },
+                        city = if (result.cidade.isNotBlank()) "${result.cidade} — ${result.uf}" else state.city
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("CheckoutViewModel", "Erro ao buscar CEP", e)
+                _uiState.update { it.copy(isCepLoading = false, error = e.message ?: "CEP não encontrado.") }
+            }
+        }
+    }
 
     fun preparePayment() {
-        if (auth.currentUser == null) {
+        if (userRepository.currentUserId == null) {
             _uiState.update { it.copy(error = "Faça login antes de continuar com o pagamento.") }
             return
         }
@@ -84,21 +101,15 @@ class CheckoutViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, error = "Seu carrinho está vazio.") }
                     return@launch
                 }
-
                 val customerInfo = CustomerInfoDto(
                     name = uiState.value.name,
                     address = uiState.value.address,
                     city = uiState.value.city,
                     phoneNumber = uiState.value.phoneNumber
                 )
-
-                val itemsDto: List<CheckoutItemDto> = cartItems.map { item ->
-                    CheckoutItemDto(id = item.product.id, quantity = item.quantity)
-                }
-
+                val itemsDto = cartItems.map { CheckoutItemDto(id = it.product.id, quantity = it.quantity) }
                 val response = api.createPaymentSheet(CheckoutRequest(items = itemsDto, customerInfo = customerInfo))
                 _uiState.update { it.copy(isLoading = false, paymentInfo = response) }
-
             } catch (e: Exception) {
                 Log.e("CheckoutViewModel", "Erro ao iniciar pagamento", e)
                 _uiState.update { it.copy(isLoading = false, error = "Erro ao iniciar pagamento: ${e.message}") }
@@ -106,56 +117,15 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun searchCep() {
-        val rawCep = uiState.value.cep.filter { it.isDigit() }
-        if (rawCep.length != 8) {
-            _uiState.update { it.copy(error = "CEP inválido. Digite os 8 números.") }
-            return
-        }
-        viewModelScope.launch {
-            _uiState.update { it.copy(isCepLoading = true, error = null) }
-            try {
-                val (logradouro, bairro, cidadeUf) = withContext(Dispatchers.IO) {
-                    val request = Request.Builder()
-                        .url("https://viacep.com.br/ws/$rawCep/json/")
-                        .build()
-                    okHttpClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw Exception("CEP não encontrado")
-                        val body = response.body?.string() ?: throw Exception("Resposta vazia")
-                        val json = JSONObject(body)
-                        if (json.optBoolean("erro", false)) throw Exception("CEP não encontrado")
-                        Triple(
-                            json.optString("logradouro", ""),
-                            json.optString("bairro", ""),
-                            "${json.optString("localidade", "")} — ${json.optString("uf", "")}"
-                        )
-                    }
-                }
-                _uiState.update { state ->
-                    state.copy(
-                        isCepLoading = false,
-                        address = if (logradouro.isNotBlank()) logradouro else state.address,
-                        neighborhood = if (bairro.isNotBlank()) bairro else state.neighborhood,
-                        city = if (cidadeUf.isNotBlank()) cidadeUf else state.city
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("CheckoutViewModel", "Erro ao buscar CEP: ${e.message}", e)
-                _uiState.update { it.copy(isCepLoading = false, error = "CEP não encontrado. Verifique e tente novamente.") }
-            }
-        }
-    }
-
     fun onPaymentSuccess() {
         viewModelScope.launch {
-            val currentUser = auth.currentUser
-            val cartItems: List<CartItem> = cartRepository.items.value
+            val userId = userRepository.currentUserId
+            val cartItems = cartRepository.items.value
             val totalAmount = cartTotal.value
             val state = uiState.value
 
-            // Salva o pedido na coleção "orders" do Firestore
             val orderData = hashMapOf(
-                "userId" to (currentUser?.uid ?: "anonymous"),
+                "userId" to (userId ?: "anonymous"),
                 "status" to "paid",
                 "total" to totalAmount,
                 "createdAt" to FieldValue.serverTimestamp(),
@@ -178,12 +148,10 @@ class CheckoutViewModel @Inject constructor(
                 )
             )
 
-            // Aguarda o pedido ser salvo antes de continuar
             try {
-                val docRef = firestore.collection("orders").add(orderData).await()
-                Log.d("CheckoutViewModel", "Pedido salvo com ID: ${docRef.id}")
+                orderRepository.saveOrder(orderData)
             } catch (e: Exception) {
-                Log.e("CheckoutViewModel", "Erro ao salvar pedido no Firestore", e)
+                Log.e("CheckoutViewModel", "Erro ao salvar pedido", e)
                 cartRepository.clearCart()
                 _uiState.update {
                     it.copy(
@@ -195,35 +163,16 @@ class CheckoutViewModel @Inject constructor(
                 return@launch
             }
 
-            if (currentUser == null) {
-                Log.e("CheckoutViewModel", "Usuário não logado, não é possível dar pontos.")
-                cartRepository.clearCart()
-                _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
-                return@launch
+            if (userId != null) {
+                try {
+                    awardPointsUseCase(totalAmount, userId)
+                } catch (e: Exception) {
+                    Log.e("CheckoutViewModel", "Erro ao creditar pontos", e)
+                }
             }
 
-            val pointsToAward = (totalAmount / 10).toLong()
-
-            if (pointsToAward <= 0) {
-                Log.d("CheckoutViewModel", "Compra de valor $totalAmount não gera pontos.")
-                cartRepository.clearCart()
-                _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
-                return@launch
-            }
-
-            val userDocRef = firestore.collection("users").document(currentUser.uid)
-
-            // Aguarda a atualização de pontos antes de concluir
-            try {
-                userDocRef.update("points", FieldValue.increment(pointsToAward)).await()
-                Log.d("CheckoutViewModel", "$pointsToAward pontos adicionados para o usuário ${currentUser.uid}")
-                cartRepository.clearCart()
-                _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
-            } catch (e: Exception) {
-                Log.e("CheckoutViewModel", "Erro ao adicionar pontos para ${currentUser.uid}", e)
-                cartRepository.clearCart()
-                _uiState.update { s -> s.copy(error = "Pagamento aprovado, mas houve um erro ao creditar seus pontos. Contate o suporte.", isPaymentSuccessful = true, paymentInfo = null) }
-            }
+            cartRepository.clearCart()
+            _uiState.update { it.copy(isPaymentSuccessful = true, paymentInfo = null) }
         }
     }
 

@@ -33,6 +33,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +61,7 @@ import com.jefferson.antenas.ui.theme.SuccessGreen
 import com.jefferson.antenas.ui.theme.TextPrimary
 import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.TextTertiary
+import com.jefferson.antenas.data.model.Order
 import com.jefferson.antenas.utils.WhatsAppHelper
 import com.jefferson.antenas.utils.WHATSAPP_PHONE
 
@@ -91,8 +93,8 @@ fun OrderDetailScreen(
             Text(
                 "Detalhes do Pedido",
                 color = TextPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -143,15 +145,15 @@ fun OrderDetailScreen(
                                     order.number,
                                     color = TextPrimary,
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 16.sp
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     order.status.label,
                                     color = order.status.color,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 13.sp
+                                    style = MaterialTheme.typography.bodySmall
                                 )
-                                Text(order.date, color = TextTertiary, fontSize = 12.sp)
+                                Text(order.date, color = TextTertiary, style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -175,13 +177,13 @@ fun OrderDetailScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.LocalShipping, null, tint = SignalOrange, modifier = Modifier.size(16.dp))
                                         Spacer(Modifier.width(6.dp))
-                                        Text("Código de Rastreio", color = TextTertiary, fontSize = 11.sp)
+                                        Text("Código de Rastreio", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
                                     }
                                     Text(
                                         order.trackingCode,
                                         color = TextPrimary,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         letterSpacing = 1.sp
                                     )
                                 }
@@ -213,8 +215,8 @@ fun OrderDetailScreen(
                                 Icon(Icons.Default.LocalShipping, null, tint = SuccessGreen, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))
                                 Column {
-                                    Text("Previsão de entrega", color = TextTertiary, fontSize = 11.sp)
-                                    Text(order.estimatedDelivery, color = SuccessGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                    Text("Previsão de entrega", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
+                                    Text(order.estimatedDelivery, color = SuccessGreen, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
@@ -232,7 +234,7 @@ fun OrderDetailScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.ShoppingBag, null, tint = SignalOrange, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("Itens do Pedido", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("Itens do Pedido", color = TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                             }
                             Spacer(Modifier.height(12.dp))
                             order.items.forEachIndexed { index, item ->
@@ -242,13 +244,13 @@ fun OrderDetailScreen(
                                     verticalAlignment = Alignment.Top
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(item.name, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                        Text("Qtd: ${item.quantity}", color = TextTertiary, fontSize = 12.sp)
+                                        Text(item.name, color = TextPrimary, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                                        Text("Qtd: ${item.quantity}", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
                                     }
                                     Text(
                                         "R$ %.2f".format(item.unitPrice * item.quantity).replace(".", ","),
                                         color = TextSecondary,
-                                        fontSize = 13.sp,
+                                        style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
@@ -261,12 +263,12 @@ fun OrderDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Total do Pedido", color = TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                Text("Total do Pedido", color = TextSecondary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
                                 Text(
                                     "R$ %.2f".format(order.total).replace(".", ","),
                                     color = SignalOrange,
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 16.sp
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                             }
                         }
@@ -292,7 +294,7 @@ fun OrderDetailScreen(
                     ) {
                         Icon(Icons.Default.Chat, null, tint = Color.White, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Falar sobre este pedido", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Falar sobre este pedido", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                     }
 
                     Spacer(Modifier.height(24.dp))

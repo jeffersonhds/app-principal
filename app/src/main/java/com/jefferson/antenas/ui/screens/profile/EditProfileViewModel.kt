@@ -3,16 +3,13 @@ package com.jefferson.antenas.ui.screens.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.userProfileChangeRequest
-import com.google.firebase.firestore.FirebaseFirestore
+import com.jefferson.antenas.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 data class EditProfileUiState(
@@ -26,8 +23,7 @@ data class EditProfileUiState(
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -38,19 +34,24 @@ class EditProfileViewModel @Inject constructor(
     }
 
     private fun loadCurrentUser() {
-        val user = auth.currentUser
-        if (user == null) {
+        val uid = userRepository.currentUserId
+        if (uid == null) {
             _uiState.update { it.copy(isLoading = false, error = "Usuário não encontrado.") }
             return
         }
         viewModelScope.launch {
             try {
-                val doc = firestore.collection("users").document(user.uid).get().await()
-                val name = doc.getString("name") ?: user.displayName ?: ""
-                _uiState.update { it.copy(isLoading = false, name = name, email = user.email ?: "") }
+                val user = userRepository.getUser(uid)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        name = user?.name ?: "",
+                        email = userRepository.currentUserEmail ?: ""
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isLoading = false, name = user.displayName ?: "", email = user.email ?: "")
+                    it.copy(isLoading = false, email = userRepository.currentUserEmail ?: "")
                 }
             }
         }
@@ -64,15 +65,11 @@ class EditProfileViewModel @Inject constructor(
             _uiState.update { it.copy(error = "Nome deve ter pelo menos 3 caracteres.") }
             return
         }
-        val user = auth.currentUser ?: return
+        val uid = userRepository.currentUserId ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null) }
             try {
-                // Atualiza no Firestore
-                firestore.collection("users").document(user.uid)
-                    .update("name", name).await()
-                // Atualiza no Firebase Auth
-                user.updateProfile(userProfileChangeRequest { displayName = name }).await()
+                userRepository.updateUserName(uid, name)
                 _uiState.update { it.copy(isSaving = false, isSaved = true) }
                 Log.d("EditProfileViewModel", "Perfil atualizado para: $name")
             } catch (e: Exception) {

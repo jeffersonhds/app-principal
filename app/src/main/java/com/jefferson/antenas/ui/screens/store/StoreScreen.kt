@@ -238,7 +238,7 @@ fun StoreScreen(
                     }
 
                     else -> {
-                        items(filteredProducts.take(displayedCount).chunked(2)) { rowProducts ->
+                        items(filteredProducts.take(displayedCount).chunked(2), key = { it.first().id }) { rowProducts ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

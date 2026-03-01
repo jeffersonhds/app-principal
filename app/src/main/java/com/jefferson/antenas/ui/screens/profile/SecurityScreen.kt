@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -41,21 +42,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.jefferson.antenas.ui.screens.auth.AuthViewModel
 import com.jefferson.antenas.ui.theme.CardBorder
 import com.jefferson.antenas.ui.theme.MidnightBlueCard
 import com.jefferson.antenas.ui.theme.MidnightBlueEnd
 import com.jefferson.antenas.ui.theme.MidnightBlueStart
 import com.jefferson.antenas.ui.theme.SatelliteBlue
-import com.jefferson.antenas.ui.theme.SignalOrange
 import com.jefferson.antenas.ui.theme.SuccessGreen
 import com.jefferson.antenas.ui.theme.TextPrimary
 import com.jefferson.antenas.ui.theme.TextSecondary
 import com.jefferson.antenas.ui.theme.TextTertiary
 import com.jefferson.antenas.ui.theme.WarningYellow
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun SecurityScreen(
@@ -103,8 +102,8 @@ fun SecurityScreen(
                 Text(
                     "Segurança",
                     color = TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -155,23 +154,23 @@ fun SecurityScreen(
                         Text(
                             "Alterar Senha",
                             color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
                             "Enviaremos um link de redefinição de senha para o seu e-mail cadastrado:",
                             color = TextSecondary,
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp,
+                            style = MaterialTheme.typography.bodySmall,
+                            lineHeight = MaterialTheme.typography.bodySmall.fontSize * 1.5f,
                             textAlign = TextAlign.Center
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             userEmail,
                             color = SatelliteBlue,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Spacer(Modifier.height(16.dp))
                         Button(
@@ -193,8 +192,8 @@ fun SecurityScreen(
                                 Text(
                                     "Enviar Email de Redefinição",
                                     color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
@@ -223,8 +222,8 @@ fun SecurityScreen(
                         Text(
                             "  Use uma senha forte com letras, números e símbolos. Nunca compartilhe sua senha com ninguém.",
                             color = TextTertiary,
-                            fontSize = 12.sp,
-                            lineHeight = 18.sp
+                            style = MaterialTheme.typography.bodySmall,
+                            lineHeight = MaterialTheme.typography.bodySmall.fontSize * 1.5f
                         )
                     }
                 }

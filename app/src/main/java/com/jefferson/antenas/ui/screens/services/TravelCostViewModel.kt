@@ -5,6 +5,7 @@ import android.location.Geocoder
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jefferson.antenas.domain.usecase.CalculateShippingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,13 +36,15 @@ data class TravelCostUiState(
 
 @HiltViewModel
 class TravelCostViewModel @Inject constructor(
-    private val okHttpClient: OkHttpClient
+    private val okHttpClient: OkHttpClient,
+    private val calculateShipping: CalculateShippingUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TravelCostUiState())
     val uiState: StateFlow<TravelCostUiState> = _uiState.asStateFlow()
 
-    fun travelCost(km: Double): Double = if (km <= 5.0) 0.0 else km * 2 * 2.5
+    /** Delegado ao use case — lógica de negócio fora do ViewModel */
+    fun travelCost(km: Double): Double = calculateShipping(km)
 
     fun calcDistance(context: Context, addressInput: String) {
         if (addressInput.isBlank()) return
@@ -49,7 +52,6 @@ class TravelCostViewModel @Inject constructor(
             _uiState.update { it.copy(isCalculating = true, errorMsg = null, resultKm = null) }
             try {
                 val km = withContext(Dispatchers.IO) {
-                    // Passo 1: Geocodificar o endereço → lat/lon
                     if (!Geocoder.isPresent()) throw Exception("Geocoder indisponível")
                     @Suppress("DEPRECATION")
                     val locations = Geocoder(context, Locale("pt", "BR"))
@@ -58,7 +60,6 @@ class TravelCostViewModel @Inject constructor(
                     val destLat = locations[0].latitude
                     val destLon = locations[0].longitude
 
-                    // Passo 2: OSRM — distância real de rota por estrada
                     try {
                         val url = "https://router.project-osrm.org/route/v1/driving/" +
                             "$STORE_LON,$STORE_LAT;$destLon,$destLat?overview=false"
@@ -68,13 +69,12 @@ class TravelCostViewModel @Inject constructor(
                                 resp.body?.string() ?: throw Exception("Resposta vazia")
                             }
                         val json = JSONObject(body)
-                        if (json.optString("code") != "Ok") throw Exception("Rota não encontrada pelo OSRM")
+                        if (json.optString("code") != "Ok") throw Exception("Rota não encontrada")
                         val routes = json.optJSONArray("routes")
-                        if (routes == null || routes.length() == 0) throw Exception("Nenhuma rota retornada pelo OSRM")
+                        if (routes == null || routes.length() == 0) throw Exception("Nenhuma rota retornada")
                         routes.getJSONObject(0).getDouble("distance") / 1000.0
                     } catch (e: Exception) {
-                        // Fallback: Haversine × 1.3 (correção de estrada)
-                        Log.d("TravelCostViewModel", "OSRM indisponível, usando Haversine como fallback: ${e.message}")
+                        Log.d("TravelCostViewModel", "OSRM indisponível, usando Haversine: ${e.message}")
                         haversineKm(STORE_LAT, STORE_LON, destLat, destLon) * 1.3
                     }
                 }

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.jefferson.antenas.ui.theme.CardBorder
 import com.jefferson.antenas.ui.theme.MidnightBlueCard
 import com.jefferson.antenas.ui.theme.MidnightBlueEnd
@@ -32,6 +32,7 @@ import com.jefferson.antenas.ui.theme.MidnightBlueStart
 import com.jefferson.antenas.ui.theme.SignalOrange
 import com.jefferson.antenas.ui.theme.TextPrimary
 import com.jefferson.antenas.ui.theme.TextSecondary
+import com.jefferson.antenas.ui.theme.TextTertiary
 
 @Composable
 fun PrivacyScreen(onBackClick: () -> Unit) {
@@ -55,7 +56,7 @@ fun PrivacyScreen(onBackClick: () -> Unit) {
                 "Termos e Privacidade",
                 color = TextPrimary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                style = MaterialTheme.typography.titleMedium
             )
         }
 
@@ -97,8 +98,8 @@ fun PrivacyScreen(onBackClick: () -> Unit) {
             Spacer(Modifier.height(8.dp))
             Text(
                 "Última atualização: Janeiro de 2025",
-                color = com.jefferson.antenas.ui.theme.TextTertiary,
-                fontSize = 11.sp,
+                color = TextTertiary,
+                style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
         }
@@ -115,9 +116,19 @@ private fun PrivacySection(title: String, body: String) {
         border = androidx.compose.foundation.BorderStroke(1.dp, CardBorder)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Text(title, color = SignalOrange, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(
+                title,
+                color = SignalOrange,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodySmall
+            )
             Spacer(Modifier.height(6.dp))
-            Text(body, color = TextSecondary, fontSize = 13.sp, lineHeight = 20.sp)
+            Text(
+                body,
+                color = TextSecondary,
+                style = MaterialTheme.typography.bodySmall,
+                lineHeight = MaterialTheme.typography.bodySmall.fontSize * 1.6f
+            )
         }
     }
 }

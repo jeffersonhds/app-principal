@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -179,7 +180,7 @@ fun SortAndResultsRow(
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
             ) {
-                Icon(Icons.Default.Sort, null, modifier = Modifier.size(14.dp))
+                Icon(Icons.AutoMirrored.Filled.Sort, null, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(
                     sortOptions.find { it.id == selectedSort }?.label ?: "Ordenar",
@@ -231,7 +232,7 @@ fun SortDropdown(
             border = androidx.compose.foundation.BorderStroke(1.dp, SignalOrange),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Icon(Icons.Default.Sort, null, modifier = Modifier.size(16.dp))
+            Icon(Icons.AutoMirrored.Filled.Sort, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text(
                 "Ordenar por: ${sortOptions.find { it.id == selectedSort }?.label ?: "Padrão"}",

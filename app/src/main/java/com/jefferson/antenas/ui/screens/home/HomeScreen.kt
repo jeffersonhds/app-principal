@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,29 +30,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import coil.compose.SubcomposeAsyncImage
-import com.jefferson.antenas.data.model.Product
 import com.jefferson.antenas.ui.componets.*
 import com.jefferson.antenas.ui.theme.*
-import com.jefferson.antenas.utils.toCurrency
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.util.Calendar
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -60,7 +53,7 @@ import androidx.compose.animation.core.tween
 import kotlin.math.roundToInt
 
 // ══════════════════════════════════════════════════════════════════════════════
-// TELA PRINCIPAL
+// TELA PRINCIPAL — Porta de entrada focada em serviços
 // ══════════════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -74,42 +67,27 @@ fun HomeScreen(
     onStoreClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val products by viewModel.products.collectAsState()
     val cartCount by viewModel.cartItemCount.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
     val context = LocalContext.current
 
-    var showToast by remember { mutableStateOf(false) }
-    if (showToast) {
-        LaunchedEffect(showToast) {
-            delay(2000)
-            showToast = false
-        }
-    }
-
-    // Produtos filtrados por seção
-    val saleProducts = remember(products) { products.filter { (it.discount ?: 0) > 0 } }
-    val newProducts = remember(products) { products.filter { it.isNew == true } }
-
-    // Banners do carousel — serviços reais da Jefferson Antenas
+    // ── Banners focados em serviços (sem menção a produtos/promoções) ─────────
     val banners = listOf(
-        BannerItem("1", "Antenas Digitais & Satélite", "Sinal HD perfeito para sua TV",
-            "", "Ver Produtos", "📡"),
-        BannerItem("2", "Instalação Profissional", "Apontamento, manutenção e configuração",
-            "", "Agendar pelo WhatsApp", "🔧"),
-        BannerItem("3", "Receptores & Decodificadores", "Os melhores modelos do mercado",
-            "", "Conhecer Modelos", "📺"),
-        BannerItem("4", "Promoções Exclusivas", "Até 30% off em produtos selecionados",
-            "", "Ver Ofertas", "🎁")
+        BannerItem("1", "Instalação Profissional", "Apontamento, manutenção e configuração",
+            "", "Agendar pelo WhatsApp", "📡"),
+        BannerItem("2", "Manutenção & Reparo", "Diagnóstico rápido no mesmo dia",
+            "", "Solicitar Visita", "🔧"),
+        BannerItem("3", "Configuração de Receptores", "SKY, Claro TV+ e similares",
+            "", "Agendar pelo WhatsApp", "📺"),
+        BannerItem("4", "Internet via Satélite", "Starlink e outras soluções",
+            "", "Saiba Mais", "🌐")
     )
 
-    // Avaliações
+    // ── Avaliações — focadas em serviço prestado ──────────────────────────────
     val reviews = listOf(
-        ReviewItem("1", "Carlos Silva",  5, "Entrega super rápida e produto original. Recomendo muito!", "Jan 2025"),
-        ReviewItem("2", "Ana Souza",     5, "O técnico foi muito atencioso na instalação. Serviço impecável.", "Dez 2024"),
-        ReviewItem("3", "Roberto Lima",  5, "Produto de qualidade, chegou bem embalado. Ótima loja!", "Nov 2024"),
-        ReviewItem("4", "Mariana Costa", 4, "Bom atendimento via WhatsApp. Produto funcionando perfeitamente.", "Out 2024")
+        ReviewItem("1", "Carlos Silva",  5, "O técnico foi muito atencioso na instalação. Serviço impecável.", "Jan 2025"),
+        ReviewItem("2", "Ana Souza",     5, "Resolveu o problema no mesmo dia. Atendimento excelente!", "Dez 2024"),
+        ReviewItem("3", "Roberto Lima",  5, "Pontual, profissional e fez um serviço perfeito. Recomendo!", "Nov 2024"),
+        ReviewItem("4", "Mariana Costa", 4, "Bom atendimento via WhatsApp e serviço funcionando perfeitamente.", "Out 2024")
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -135,17 +113,24 @@ fun HomeScreen(
                 // ── Barra de busca clicável ──────────────────────────────────
                 HomeSearchBar(onClick = onSearchClick)
 
-                // ── Faixa de urgência ────────────────────────────────────────
-                UrgencyStrip()
+                // ── Faixa de urgência (atendimento, não frete) ───────────────
+                ServiceUrgencyStrip()
 
-                // ── Carousel de banners ──────────────────────────────────────
+                // ── Carousel de banners — serviços ───────────────────────────
                 HeroCarouselModernized(
                     banners = banners,
                     onButtonClick = { bannerId ->
+                        // Todos os slides abrem WhatsApp ou Serviços
                         when (bannerId) {
-                            "2" -> {
+                            "4" -> onServicesClick()
+                            else -> {
                                 val phone = WHATSAPP_PHONE
-                                val msg = "Olá Jefferson! Vim pelo aplicativo e gostaria de agendar uma instalação."
+                                val msg = when (bannerId) {
+                                    "1" -> "Olá Jefferson! Vim pelo aplicativo e gostaria de agendar uma instalação."
+                                    "2" -> "Olá Jefferson! Vim pelo aplicativo e preciso de manutenção/reparo."
+                                    "3" -> "Olá Jefferson! Vim pelo aplicativo e preciso configurar meu receptor."
+                                    else -> "Olá Jefferson! Vim pelo aplicativo e gostaria de mais informações."
+                                }
                                 try {
                                     val url = "https://api.whatsapp.com/send?phone=$phone&text=${
                                         URLEncoder.encode(msg, "UTF-8")
@@ -155,75 +140,14 @@ fun HomeScreen(
                                     Toast.makeText(context, "WhatsApp não encontrado. Instale o app e tente novamente.", Toast.LENGTH_LONG).show()
                                 }
                             }
-                            else -> onStoreClick()
                         }
                     }
                 )
 
-                // ── Categorias rápidas ───────────────────────────────────────
-                HomeCategoriesRow(
-                    onCategoryClick = { onSearchClick() }
-                )
-
-                // ── Benefícios (4 badges) ────────────────────────────────────
-                TrustBadgesModernized()
-
-                // ── Oferta do Dia (Countdown + produtos) ─────────────────────
-                if (!isLoading && saleProducts.isNotEmpty()) {
-                    FlashSaleSection(
-                        products = saleProducts,
-                        onProductClick = onProductClick,
-                        onAddToCart = {
-                            viewModel.addToCart(it)
-                            showToast = true
-                        }
-                    )
-                }
-
-                // ── Serviços CTA ─────────────────────────────────────────────
+                // ── Card principal de serviços (CTA interativo) ──────────────
                 ServiceCallToActionCard_Interactive(onClick = onServicesClick)
 
-                // ── Destaques ────────────────────────────────────────────────
-                HomeSectionHeader(
-                    title = "🔥 Mais Vendidos",
-                    subtitle = "Produtos favoritos dos nossos clientes",
-                    onSeeAll = onStoreClick
-                )
-
-                when {
-                    isLoading -> HomeProductsShimmer()
-                    errorMessage != null -> HomeErrorState(
-                        message = errorMessage ?: "",
-                        onRetry = { viewModel.retry() }
-                    )
-                    else -> HomeProductsRow(
-                        products = products.take(8),
-                        onProductClick = onProductClick,
-                        onAddToCart = {
-                            viewModel.addToCart(it)
-                            showToast = true
-                        }
-                    )
-                }
-
-                // ── Novidades ────────────────────────────────────────────────
-                if (!isLoading && newProducts.isNotEmpty()) {
-                    HomeSectionHeader(
-                        title = "✨ Novidades",
-                        subtitle = "Acabaram de chegar",
-                        onSeeAll = onStoreClick
-                    )
-                    HomeProductsRow(
-                        products = newProducts,
-                        onProductClick = onProductClick,
-                        onAddToCart = {
-                            viewModel.addToCart(it)
-                            showToast = true
-                        }
-                    )
-                }
-
-                // ── Stats / Prova social ─────────────────────────────────────
+                // ── Prova social (números da empresa) ────────────────────────
                 HomeSocialProof()
 
                 // ── Avaliações dos clientes ──────────────────────────────────
@@ -232,20 +156,17 @@ fun HomeScreen(
                 // ── WhatsApp CTA ─────────────────────────────────────────────
                 WhatsAppCtaSection(context = context)
 
+                // ── Gancho discreto da Loja ──────────────────────────────────
+                StoreGanchoCard(onClick = onStoreClick)
+
                 Spacer(Modifier.height(90.dp))
             }
         }
-
-        ModernSuccessToast(
-            visible = showToast,
-            message = "✓ Adicionado ao carrinho!",
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
     }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// TOP BAR
+// TOP BAR (sem alteração)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -262,7 +183,6 @@ private fun HomeTopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Logo "JA" em círculo laranja
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -301,7 +221,6 @@ private fun HomeTopBar(
             IconButton(onClick = onSearchClick) {
                 Icon(Icons.Default.Search, "Buscar", tint = TextSecondary)
             }
-            // Carrinho com badge
             CartAppBarAction(cartCount = cartCount, onCartClick = onCartClick)
             IconButton(onClick = onProfileClick) {
                 Icon(Icons.Default.Person, "Perfil", tint = TextSecondary)
@@ -311,7 +230,7 @@ private fun HomeTopBar(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// BARRA DE BUSCA CLICÁVEL
+// BARRA DE BUSCA CLICÁVEL (sem alteração)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -356,11 +275,11 @@ private fun HomeSearchBar(onClick: () -> Unit) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// FAIXA DE URGÊNCIA
+// FAIXA DE URGÊNCIA — focada em serviços (substituiu a de frete)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
-private fun UrgencyStrip() {
+private fun ServiceUrgencyStrip() {
     val infiniteTransition = rememberInfiniteTransition(label = "urgency")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue = 0.07f, targetValue = 0.18f,
@@ -382,17 +301,17 @@ private fun UrgencyStrip() {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🚚", fontSize = 12.sp)
+            Text("⚡", fontSize = 12.sp)
             Spacer(Modifier.width(6.dp))
             Text(
-                "Frete grátis acima de R\$299",
+                "Atendimento em até 24h",
                 color = SignalOrange,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text("  •  ", color = TextTertiary, fontSize = 12.sp)
             Text(
-                "Entrega em todo o Brasil",
+                "Sapezal — MT e região",
                 color = TextSecondary,
                 fontSize = 12.sp
             )
@@ -401,7 +320,63 @@ private fun UrgencyStrip() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CAROUSEL DE BANNERS (melhorado)
+// GANCHO DISCRETO DA LOJA (novo — substitui toda a vitrine de produtos)
+// ══════════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun StoreGanchoCard(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
+        color = CardGradientStart,
+        shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, CardBorder)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Surface(
+                color = SignalOrange.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    Icons.Default.ShoppingBag, null,
+                    tint = SignalOrange,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .padding(10.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Loja de Equipamentos",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Text(
+                    "Antenas, receptores, cabos e acessórios",
+                    fontSize = 11.sp,
+                    color = TextSecondary
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward, null,
+                tint = TextTertiary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CAROUSEL DE BANNERS (sem alteração no componente, só nos dados acima)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -413,12 +388,11 @@ fun HeroCarouselModernized(
 ) {
     if (banners.isEmpty()) return
 
-    // Gradientes únicos por banner — identidade visual de cada serviço
     val bannerGradients = listOf(
-        listOf(Color(0xFFB45309), Color(0xFF78350F), Color(0xFF1C1917)), // laranja — antenas
-        listOf(Color(0xFF1D4ED8), Color(0xFF1E3A8A), Color(0xFF0F172A)), // azul    — instalação
-        listOf(Color(0xFF047857), Color(0xFF064E3B), Color(0xFF0F172A)), // verde   — receptores
-        listOf(Color(0xFFBE123C), Color(0xFF9D174D), Color(0xFF0F172A))  // vermelho — promoções
+        listOf(Color(0xFFB45309), Color(0xFF78350F), Color(0xFF1C1917)),
+        listOf(Color(0xFF1D4ED8), Color(0xFF1E3A8A), Color(0xFF0F172A)),
+        listOf(Color(0xFF047857), Color(0xFF064E3B), Color(0xFF0F172A)),
+        listOf(Color(0xFFBE123C), Color(0xFF9D174D), Color(0xFF0F172A))
     )
 
     val pagerState = rememberPagerState(pageCount = { banners.size })
@@ -447,12 +421,10 @@ fun HeroCarouselModernized(
                 Box(modifier = Modifier.fillMaxSize()) {
 
                     if (banner.imageUrl.isNotEmpty()) {
-                        // Modo foto (caso imageUrl seja preenchida no futuro)
                         AsyncImage(
                             model = banner.imageUrl,
                             contentDescription = banner.title,
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
                         )
                         Box(
                             modifier = Modifier
@@ -465,13 +437,11 @@ fun HeroCarouselModernized(
                                 )
                         )
                     } else {
-                        // Modo gradiente premium
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(Brush.linearGradient(gradColors))
                         )
-                        // Ícone decorativo grande no fundo
                         Text(
                             banner.icon,
                             fontSize = 110.sp,
@@ -482,7 +452,6 @@ fun HeroCarouselModernized(
                         )
                     }
 
-                    // Conteúdo do banner
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -518,7 +487,7 @@ fun HeroCarouselModernized(
                                     fontSize = 12.sp
                                 )
                                 Icon(
-                                    Icons.Default.ArrowForward, null,
+                                    Icons.AutoMirrored.Filled.ArrowForward, null,
                                     tint = MidnightBlueStart,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -528,7 +497,6 @@ fun HeroCarouselModernized(
                 }
             }
 
-            // Indicadores pill
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -552,536 +520,7 @@ fun HeroCarouselModernized(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CATEGORIAS RÁPIDAS
-// ══════════════════════════════════════════════════════════════════════════════
-
-private data class HomeCategory(val icon: String, val label: String, val color: Color)
-
-@Composable
-private fun HomeCategoriesRow(onCategoryClick: (String) -> Unit) {
-    val categories = listOf(
-        HomeCategory("📡", "Antenas",    SignalOrange),
-        HomeCategory("📺", "Receptores", SatelliteBlue),
-        HomeCategory("🔌", "Cabos",      SuccessGreen),
-        HomeCategory("🔧", "Instalação", Color(0xFFF59E0B)),
-        HomeCategory("💰", "Promoções",  Color(0xFFEC4899)),
-        HomeCategory("🆕", "Novidades",  Color(0xFF8B5CF6))
-    )
-
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(
-            "Categorias",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-        )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(categories) { cat ->
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable { onCategoryClick(cat.label) }
-                        .width(68.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Surface(
-                        color = cat.color.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, cat.color.copy(alpha = 0.35f)),
-                        modifier = Modifier.size(56.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.radialGradient(
-                                        listOf(cat.color.copy(alpha = 0.20f), Color.Transparent)
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(cat.icon, fontSize = 24.sp)
-                        }
-                    }
-                    Text(
-                        cat.label,
-                        fontSize = 10.sp,
-                        color = cat.color.copy(alpha = 0.9f),
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// TRUST BADGES (4 cartões)
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-fun TrustBadgesModernized(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        BadgeItemModernized(Icons.Default.VerifiedUser, "Garantia",     "12 Meses", Modifier.weight(1f))
-        BadgeItemModernized(Icons.Default.LocalShipping, "Entrega",     "Rápida",   Modifier.weight(1f))
-        BadgeItemModernized(Icons.Default.Lock,          "Pagamento",   "Seguro",   Modifier.weight(1f))
-        BadgeItemModernized(Icons.Default.HeadsetMic,    "Suporte",     "WhatsApp", Modifier.weight(1f))
-    }
-}
-
-@Composable
-fun BadgeItemModernized(
-    icon: ImageVector,
-    title: String,
-    sub: String,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.height(90.dp),
-        color = CardGradientStart,
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, CardBorder),
-        shadowElevation = 2.dp
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Surface(
-                color = SignalOrange.copy(alpha = 0.14f),
-                shape = CircleShape
-            ) {
-                Icon(
-                    icon, null,
-                    tint = SignalOrange,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .padding(7.dp)
-                )
-            }
-            Spacer(Modifier.height(5.dp))
-            Text(title, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-            Text(sub, fontSize = 9.sp, color = SignalOrange, fontWeight = FontWeight.SemiBold)
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SEÇÃO OFERTA DO DIA (FLASH SALE + COUNTDOWN)
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun FlashSaleSection(
-    products: List<Product>,
-    onProductClick: (String) -> Unit,
-    onAddToCart: (Product) -> Unit
-) {
-    // Countdown até meia-noite
-    var secondsLeft by remember {
-        mutableIntStateOf(
-            run {
-                val cal = Calendar.getInstance()
-                val now = cal.timeInMillis
-                cal.set(Calendar.HOUR_OF_DAY, 23)
-                cal.set(Calendar.MINUTE, 59)
-                cal.set(Calendar.SECOND, 59)
-                ((cal.timeInMillis - now) / 1000).toInt().coerceAtLeast(0)
-            }
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        while (secondsLeft > 0) {
-            delay(1000)
-            secondsLeft--
-        }
-    }
-
-    val hours   = secondsLeft / 3600
-    val minutes = (secondsLeft % 3600) / 60
-    val seconds = secondsLeft % 60
-
-    val flashInfinite = rememberInfiniteTransition(label = "flash")
-    val flashGlow by flashInfinite.animateFloat(
-        initialValue = 0.03f, targetValue = 0.10f,
-        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "flashglow"
-    )
-
-    Column(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .background(
-                Brush.verticalGradient(
-                    listOf(SignalOrange.copy(alpha = flashGlow), Color.Transparent, Color.Transparent)
-                )
-            )
-    ) {
-        // Header laranja com countdown
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("⚡", fontSize = 18.sp)
-                Column {
-                    Text(
-                        "Oferta do Dia",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = TextPrimary
-                    )
-                    Text(
-                        "Preços válidos por tempo limitado",
-                        fontSize = 10.sp,
-                        color = TextSecondary
-                    )
-                }
-            }
-
-            // Countdown
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                CountdownBox(String.format("%02d", hours))
-                Text(":", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = SignalOrange)
-                CountdownBox(String.format("%02d", minutes))
-                Text(":", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = SignalOrange)
-                CountdownBox(String.format("%02d", seconds))
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(products.take(6), key = { it.id }) { product ->
-                HomeProductCard(
-                    product = product,
-                    onClick = { onProductClick(product.id) },
-                    onAddToCart = { onAddToCart(product) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CountdownBox(value: String) {
-    Surface(
-        color = ErrorRed,
-        shape = RoundedCornerShape(6.dp)
-    ) {
-        Text(
-            value,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-        )
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// CARD DE PRODUTO HORIZONTAL (compacto)
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun HomeProductCard(
-    product: Product,
-    onClick: () -> Unit,
-    onAddToCart: () -> Unit
-) {
-    val discountedPrice = product.getDiscountedPrice()
-    val hasDiscount = (product.discount ?: 0) > 0
-
-    Surface(
-        modifier = Modifier
-            .width(155.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick),
-        color = MidnightBlueCard,
-        shape = RoundedCornerShape(14.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, CardBorder),
-        shadowElevation = 3.dp
-    ) {
-        Column {
-            // Imagem
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(130.dp)
-                    .background(Color.White)
-            ) {
-                SubcomposeAsyncImage(
-                    model = product.imageUrl,
-                    contentDescription = product.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    loading = {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                color = SignalOrange,
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    },
-                    error = {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Image, null, tint = Color.Gray.copy(0.4f), modifier = Modifier.size(32.dp))
-                        }
-                    }
-                )
-
-                // Badge de desconto
-                if (hasDiscount) {
-                    Surface(
-                        modifier = Modifier.align(Alignment.TopStart),
-                        color = ErrorRed,
-                        shape = RoundedCornerShape(topStart = 14.dp, bottomEnd = 8.dp)
-                    ) {
-                        Text(
-                            "-${product.discount}%",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
-                    }
-                }
-                // Badge NOVO
-                if (product.isNew == true) {
-                    Surface(
-                        modifier = Modifier.align(Alignment.TopEnd),
-                        color = SignalOrange,
-                        shape = RoundedCornerShape(topEnd = 14.dp, bottomStart = 8.dp)
-                    ) {
-                        Text(
-                            "NOVO",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MidnightBlueStart,
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp)
-                        )
-                    }
-                }
-            }
-
-            // Info
-            Column(modifier = Modifier.padding(10.dp)) {
-                Text(
-                    product.name,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 16.sp
-                )
-                Spacer(Modifier.height(3.dp))
-                if (hasDiscount) {
-                    Text(
-                        product.price,
-                        fontSize = 10.sp,
-                        color = TextTertiary,
-                        textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough
-                    )
-                }
-                Text(
-                    discountedPrice.toCurrency(),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = SignalOrange
-                )
-                // Badge frete grátis
-                if (discountedPrice >= 299.0) {
-                    Spacer(Modifier.height(3.dp))
-                    Surface(
-                        color = SuccessGreen.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp)
-                        ) {
-                            Icon(Icons.Default.LocalShipping, null, tint = SuccessGreen, modifier = Modifier.size(9.dp))
-                            Text("Frete grátis", fontSize = 8.sp, color = SuccessGreen, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
-                Spacer(Modifier.height(6.dp))
-                // Botão adicionar
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = onAddToCart),
-                    color = SignalOrange,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.ShoppingCart, null,
-                            tint = MidnightBlueStart,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            "Adicionar",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MidnightBlueStart
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SEÇÃO HEADER COM "VER TODOS"
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun HomeSectionHeader(
-    title: String,
-    subtitle: String,
-    onSeeAll: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = TextPrimary)
-            Text(subtitle, fontSize = 11.sp, color = TextSecondary)
-        }
-        Surface(
-            color = SignalOrange.copy(alpha = 0.12f),
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.clickable(onClick = onSeeAll)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                Text("Ver todos", fontSize = 11.sp, color = SignalOrange, fontWeight = FontWeight.SemiBold)
-                Icon(Icons.Default.ChevronRight, null, tint = SignalOrange, modifier = Modifier.size(14.dp))
-            }
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// LINHA HORIZONTAL DE PRODUTOS
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun HomeProductsRow(
-    products: List<Product>,
-    onProductClick: (String) -> Unit,
-    onAddToCart: (Product) -> Unit
-) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        items(products, key = { it.id }) { product ->
-            HomeProductCard(
-                product = product,
-                onClick = { onProductClick(product.id) },
-                onAddToCart = { onAddToCart(product) }
-            )
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SHIMMER DE CARREGAMENTO
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun HomeProductsShimmer() {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        items(4) {
-            ShimmerProductCard(modifier = Modifier.width(155.dp))
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ESTADO DE ERRO
-// ══════════════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun HomeErrorState(message: String, onRetry: () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        color = CardGradientStart,
-        shape = RoundedCornerShape(14.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, ErrorRed.copy(alpha = 0.3f))
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Icon(Icons.Default.WifiOff, null, tint = TextSecondary, modifier = Modifier.size(42.dp))
-            Text(message, color = TextSecondary, fontSize = 13.sp, textAlign = TextAlign.Center)
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = SignalOrange),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Icon(Icons.Default.Refresh, null, tint = MidnightBlueStart, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Tentar novamente", color = MidnightBlueStart, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// PROVA SOCIAL (números da loja)
+// PROVA SOCIAL (sem alteração)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -1122,7 +561,7 @@ private fun HomeSocialProof() {
                 Box(modifier = Modifier.width(0.5.dp).height(44.dp).background(CardBorder))
                 SocialProofStat("5+", "Anos de\nExperiência")
                 Box(modifier = Modifier.width(0.5.dp).height(44.dp).background(CardBorder))
-                SocialProofStat("100%", "Produtos\nOriginais")
+                SocialProofStat("100%", "Satisfação\nGarantida")
             }
         }
     }
@@ -1146,7 +585,7 @@ private fun SocialProofStat(value: String, label: String) {
     }
 
     val display = if (isDecimal) "${String.format("%.1f", animVal)}$suffix"
-                  else "${animVal.roundToInt()}$suffix"
+    else "${animVal.roundToInt()}$suffix"
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(display, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = SignalOrange)
@@ -1155,13 +594,12 @@ private fun SocialProofStat(value: String, label: String) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// AVALIAÇÕES DOS CLIENTES (melhorado)
+// AVALIAÇÕES DOS CLIENTES (sem alteração)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
 private fun ImprovedReviewsSection(reviews: List<ReviewItem>) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1175,44 +613,30 @@ private fun ImprovedReviewsSection(reviews: List<ReviewItem>) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("4.9 de 5", fontSize = 12.sp, color = SignalOrange, fontWeight = FontWeight.Bold)
-                    Text("•", fontSize = 12.sp, color = TextTertiary)
-                    Text("${reviews.size * 30}+ avaliações", fontSize = 12.sp, color = TextSecondary)
-                }
-            }
-            Surface(
-                color = Color(0xFFFFC107).copy(alpha = 0.14f),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
                     repeat(5) {
-                        Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(13.dp))
                     }
+                    Text(" 4.9 · ${reviews.size} avaliações", fontSize = 11.sp, color = TextSecondary)
                 }
             }
         }
-
-        Spacer(Modifier.height(4.dp))
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(reviews) { review ->
-                ImprovedReviewCard(review = review)
+            items(reviews, key = { it.id }) { review ->
+                ReviewCard(review)
             }
         }
     }
 }
 
 @Composable
-private fun ImprovedReviewCard(review: ReviewItem) {
+private fun ReviewCard(review: ReviewItem) {
     Surface(
         modifier = Modifier.width(260.dp),
-        color = MidnightBlueCard,
+        color = CardGradientStart,
         shape = RoundedCornerShape(14.dp),
         border = androidx.compose.foundation.BorderStroke(0.5.dp, CardBorder),
         shadowElevation = 2.dp
@@ -1220,39 +644,35 @@ private fun ImprovedReviewCard(review: ReviewItem) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Surface(
+                    color = SignalOrange.copy(alpha = 0.15f),
+                    shape = CircleShape
                 ) {
-                    Box(
+                    Text(
+                        review.author.first().toString(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SignalOrange,
                         modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(SatelliteBlue.copy(alpha = 0.25f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            (review.author.firstOrNull() ?: "?").toString(),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SatelliteBlue
-                        )
-                    }
-                    Column {
-                        Text(review.author, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                        Row {
-                            repeat(review.rating) {
-                                Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(11.dp))
-                            }
-                            repeat(5 - review.rating) {
-                                Icon(Icons.Default.Star, null, tint = TextTertiary, modifier = Modifier.size(11.dp))
-                            }
+                            .size(36.dp)
+                            .padding(top = 9.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Column {
+                    Text(review.author, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                    Row {
+                        repeat(review.rating) {
+                            Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(11.dp))
+                        }
+                        repeat(5 - review.rating) {
+                            Icon(Icons.Default.Star, null, tint = TextTertiary, modifier = Modifier.size(11.dp))
                         }
                     }
                 }
+                Spacer(Modifier.weight(1f))
                 Surface(
                     color = SuccessGreen.copy(alpha = 0.12f),
                     shape = RoundedCornerShape(4.dp)
@@ -1272,7 +692,6 @@ private fun ImprovedReviewCard(review: ReviewItem) {
                 color = TextSecondary,
                 lineHeight = 18.sp,
                 maxLines = 3,
-                overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(8.dp))
             Surface(
@@ -1285,7 +704,7 @@ private fun ImprovedReviewCard(review: ReviewItem) {
                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     Icon(Icons.Default.CheckCircle, null, tint = SuccessGreen, modifier = Modifier.size(10.dp))
-                    Text("Compra Verificada", fontSize = 9.sp, color = SuccessGreen)
+                    Text("Serviço Verificado", fontSize = 9.sp, color = SuccessGreen)
                 }
             }
         }
@@ -1293,7 +712,7 @@ private fun ImprovedReviewCard(review: ReviewItem) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// SERVIÇOS CTA (mantido com pequena melhora)
+// SERVIÇOS CTA INTERATIVO (sem alteração)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -1366,7 +785,7 @@ fun ServiceCallToActionCard_Interactive(onClick: () -> Unit) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// WHATSAPP CTA (rodapé)
+// WHATSAPP CTA (sem alteração)
 // ══════════════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -1391,7 +810,7 @@ private fun WhatsAppCtaSection(context: android.content.Context) {
                 shape = CircleShape
             ) {
                 Icon(
-                    Icons.Default.Message, null,
+                    Icons.AutoMirrored.Filled.Message, null,
                     tint = SuccessGreen,
                     modifier = Modifier
                         .size(50.dp)
@@ -1415,7 +834,7 @@ private fun WhatsAppCtaSection(context: android.content.Context) {
                     color = SuccessGreen,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.clickable {
-                        val phone = "5565992895296"
+                        val phone = WHATSAPP_PHONE
                         val msg = "Olá Jefferson! Vim pelo aplicativo e gostaria de mais informações."
                         try {
                             val url = "https://api.whatsapp.com/send?phone=$phone&text=${

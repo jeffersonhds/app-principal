@@ -27,19 +27,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -736,7 +747,7 @@ private fun OrderCard(
                             contentPadding = PaddingValues(horizontal = 8.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                         ) {
-                            Icon(Icons.Default.Chat, null, modifier = Modifier.size(15.dp))
+                            Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("Suporte", fontSize = 12.sp)
                         }
@@ -957,7 +968,7 @@ private fun OrdersWhatsAppCta() {
                         .background(SuccessGreen.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Chat, null, tint = SuccessGreen, modifier = Modifier.size(22.dp))
+                    Icon(Icons.AutoMirrored.Filled.Chat, null, tint = SuccessGreen, modifier = Modifier.size(22.dp))
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -986,7 +997,7 @@ private fun OrdersWhatsAppCta() {
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                 ) {
-                    Icon(Icons.Default.Chat, null, modifier = Modifier.size(15.dp))
+                    Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(4.dp))
                     Text("Chat", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }

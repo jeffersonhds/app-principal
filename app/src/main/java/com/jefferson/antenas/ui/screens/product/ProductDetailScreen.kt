@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -810,7 +811,7 @@ fun ProductDetailScreen(
                                         ),
                                         shape = RoundedCornerShape(10.dp)
                                     ) {
-                                        Icon(Icons.Default.Message, null, modifier = Modifier.size(16.dp))
+                                        Icon(Icons.AutoMirrored.Filled.Message, null, modifier = Modifier.size(16.dp))
                                         Spacer(Modifier.width(6.dp))
                                         Text(
                                             "Falar com o Vendedor",
@@ -846,7 +847,7 @@ fun ProductDetailScreen(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
-                                        Icons.Default.List, null,
+                                        Icons.AutoMirrored.Filled.List, null,
                                         tint = SignalOrange,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -1656,7 +1657,7 @@ fun BottomPurchaseBar(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            Icons.Default.Message, "WhatsApp",
+                            Icons.AutoMirrored.Filled.Message, "WhatsApp",
                             tint = SuccessGreen,
                             modifier = Modifier.size(20.dp)
                         )

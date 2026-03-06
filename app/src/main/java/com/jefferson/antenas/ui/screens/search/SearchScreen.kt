@@ -31,25 +31,42 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Cable
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Satellite
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -295,7 +312,7 @@ private fun SearchEmptyContent(
 
         // ── Trending searches ────────────────────────────────
         SearchSectionHeader(
-            icon = Icons.Default.TrendingUp,
+            icon = Icons.AutoMirrored.Filled.TrendingUp,
             title = "Em Alta 🔥",
             iconTint = SignalOrange
         )
@@ -632,7 +649,7 @@ private fun SearchResultsContent(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    Icons.Default.Sort,
+                                    Icons.AutoMirrored.Filled.Sort,
                                     null,
                                     tint = SignalOrange,
                                     modifier = Modifier.size(16.dp)
@@ -820,7 +837,7 @@ private fun TrendingChip(text: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.TrendingUp,
+                Icons.AutoMirrored.Filled.TrendingUp,
                 null,
                 tint = SignalOrange,
                 modifier = Modifier.size(13.dp)

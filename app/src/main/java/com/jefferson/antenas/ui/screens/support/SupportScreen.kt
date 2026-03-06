@@ -26,9 +26,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.HelpCenter
+
+
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ConfirmationNumber
@@ -301,7 +302,7 @@ fun SupportScreen(onBackClick: () -> Unit) {
 
     val tabs = listOf(
         Triple(Icons.AutoMirrored.Filled.HelpCenter, "Ajuda", 0),
-        Triple(Icons.Default.LiveHelp, "FAQ", 1),
+        Triple(Icons.AutoMirrored.Filled.LiveHelp, "FAQ", 1),
         Triple(Icons.Default.ConfirmationNumber, "Chamados", 2)
     )
 
@@ -541,7 +542,7 @@ private fun ContactOptionsRow() {
         val context = LocalContext.current
         ContactOptionCard(
             modifier = Modifier.weight(1f),
-            icon = Icons.Default.Chat,
+            icon = Icons.AutoMirrored.Filled.Chat,
             label = "WhatsApp",
             sublabel = "Resposta rápida",
             color = SuccessGreen,
@@ -716,7 +717,7 @@ private fun TroubleshootCard(
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = SuccessGreen),
                             contentPadding = PaddingValues(horizontal = 16.dp)
                         ) {
-                            Icon(Icons.Default.Chat, null, modifier = Modifier.size(14.dp))
+                            Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("Problema persiste? Falar com técnico", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         }
@@ -757,7 +758,7 @@ private fun SupportWhatsAppCta() {
                             .background(SuccessGreen.copy(alpha = 0.15f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Chat, null, tint = SuccessGreen, modifier = Modifier.size(24.dp))
+                        Icon(Icons.AutoMirrored.Filled.Chat, null, tint = SuccessGreen, modifier = Modifier.size(24.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
@@ -777,7 +778,7 @@ private fun SupportWhatsAppCta() {
                     colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.Chat, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Falar com Suporte no WhatsApp", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
@@ -808,7 +809,7 @@ private fun FaqTabContent() {
                     modifier = Modifier.padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.LiveHelp, null, tint = SatelliteBlue, modifier = Modifier.size(20.dp))
+                    Icon(Icons.AutoMirrored.Filled.LiveHelp, null, tint = SatelliteBlue, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(10.dp))
                     Text(
                         "Perguntas Frequentes — encontre respostas rápidas",
@@ -964,7 +965,7 @@ private fun TicketsTabContent() {
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                 ) {
-                    Icon(Icons.Default.Chat, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(5.dp))
                     Text("Novo", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
@@ -1038,7 +1039,7 @@ private fun TicketsTabContent() {
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = SuccessGreen)
             ) {
-                Icon(Icons.Default.Chat, null, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Acompanhar via WhatsApp", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             }

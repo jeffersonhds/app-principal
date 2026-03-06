@@ -27,12 +27,11 @@ fun BottomNavBar(navController: NavHostController) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        // O "SALÃO DO TESOURO" FOI ADICIONADO AQUI
         val items = listOf(
             Triple("home", "Início", Icons.Default.Home),
+            Triple("services", "Serviços", Icons.Default.Build),
             Triple("store", "Loja", Icons.Default.ShoppingBag),
-            Triple("downloads", "Baixar", Icons.Default.Download),
-            Triple("support", "Suporte", Icons.Default.HeadsetMic)
+            Triple("profile", "Perfil", Icons.Default.Person)
         )
 
         items.forEach { (route, label, icon) ->

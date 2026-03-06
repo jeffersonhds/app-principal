@@ -2,10 +2,13 @@ package com.jefferson.antenas.ui.screens.store
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
@@ -129,9 +132,14 @@ fun StoreScreen(
                     PromoCarousel()
                 }
 
-                // ── Benefícios (3 chips) ────────────────────────────────────
+                // ── Categorias rápidas (migradas da Home) ───────────────────
                 item {
-                    BenefitsRow()
+                    StoreCategoriesRow(onCategoryClick = { selectedCategory = it })
+                }
+
+                // ── Benefícios (migrados da Home) ───────────────────────────
+                item {
+                    TrustBadges()
                 }
 
                 // ── Filtros de categoria ────────────────────────────────────
@@ -298,11 +306,79 @@ fun StoreScreen(
             }
         }
 
-        // ── Toast de confirmação ────────────────────────────────────────────
         ModernSuccessToast(
             visible = showToast,
             message = "Item adicionado!",
             modifier = Modifier.align(Alignment.TopCenter)
         )
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CATEGORIAS RÁPIDAS — migradas da Home para a Loja
+// ══════════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun StoreCategoriesRow(onCategoryClick: (String) -> Unit) {
+    val categories = listOf(
+        Triple("📡", "Antenas",    com.jefferson.antenas.ui.theme.SignalOrange),
+        Triple("📺", "Receptores", com.jefferson.antenas.ui.theme.SatelliteBlue),
+        Triple("🔌", "Cabos",      com.jefferson.antenas.ui.theme.SuccessGreen),
+        Triple("🔧", "Instalação", androidx.compose.ui.graphics.Color(0xFFF59E0B)),
+        Triple("💰", "Promoções",  androidx.compose.ui.graphics.Color(0xFFEC4899)),
+        Triple("🆕", "Novidades",  androidx.compose.ui.graphics.Color(0xFF8B5CF6))
+    )
+
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Text(
+            "Categorias",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(categories) { (icon, label, color) ->
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { onCategoryClick(label) }
+                        .width(68.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Surface(
+                        color = color.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, color.copy(alpha = 0.35f)),
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    androidx.compose.ui.graphics.Brush.radialGradient(
+                                        listOf(color.copy(alpha = 0.20f), androidx.compose.ui.graphics.Color.Transparent)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(icon, fontSize = 24.sp)
+                        }
+                    }
+                    Text(
+                        label,
+                        fontSize = 10.sp,
+                        color = color.copy(alpha = 0.9f),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
     }
 }

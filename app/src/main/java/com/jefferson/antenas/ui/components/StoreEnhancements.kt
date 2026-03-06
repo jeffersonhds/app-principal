@@ -13,6 +13,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -394,7 +395,7 @@ fun ServicesLinkCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
                     fontSize = 11.sp
                 )
             }
-            Icon(Icons.Default.ArrowForward, null, tint = SignalOrange, modifier = Modifier.size(16.dp))
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = SignalOrange, modifier = Modifier.size(16.dp))
         }
     }
 }

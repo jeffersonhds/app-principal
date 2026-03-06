@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 data class ProfileUiState(
     val user: User? = null,
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val error: String? = null,
     val isLoggedOut: Boolean = false
 )
@@ -37,22 +37,29 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun loadUserProfile() {
-        val uid = auth.currentUser?.uid
-        if (uid == null) {
+        val firebaseUser = auth.currentUser
+        if (firebaseUser == null) {
             _uiState.update { it.copy(isLoading = false, error = "Nenhum usuário logado.") }
             return
         }
+
+        // Mostra imediatamente com dados já em memória (sem rede)
+        val quickUser = User(
+            uid = firebaseUser.uid,
+            name = firebaseUser.displayName ?: "",
+            email = firebaseUser.email ?: ""
+        )
+        _uiState.update { it.copy(isLoading = false, user = quickUser) }
+
+        // Busca pontos e dados completos no Firestore em background
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
             try {
-                val user = userRepository.getUser(uid)
-                if (user != null) {
-                    _uiState.update { it.copy(isLoading = false, user = user) }
-                } else {
-                    _uiState.update { it.copy(isLoading = false, error = "Perfil não encontrado.") }
+                val fullUser = userRepository.getUser(firebaseUser.uid)
+                if (fullUser != null) {
+                    _uiState.update { it.copy(user = fullUser) }
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "Erro ao buscar perfil: ${e.message}") }
+            } catch (_: Exception) {
+                // Mantém quickUser — pontos aparecem quando a rede responder
             }
         }
     }

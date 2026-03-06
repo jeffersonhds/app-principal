@@ -3,6 +3,9 @@ package com.jefferson.antenas.ui.screens.cart
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import com.jefferson.antenas.utils.FREE_SHIPPING_THRESHOLD
+import com.jefferson.antenas.utils.PIX_DISCOUNT
+import com.jefferson.antenas.utils.VALID_COUPONS
 import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -16,8 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,10 +81,6 @@ class CartViewModel @Inject constructor(
 // ══════════════════════════════════════════════════════════════════════════════
 // TELA PRINCIPAL
 // ══════════════════════════════════════════════════════════════════════════════
-
-private const val FREE_SHIPPING_THRESHOLD = 100.0
-private const val PIX_DISCOUNT = 0.05
-private val VALID_COUPONS = mapOf("JEFF10" to 0.10, "ANTENAS15" to 0.15)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1247,7 +1246,7 @@ private fun CartBottomBar(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            Icons.Default.Message, "WhatsApp",
+                            Icons.AutoMirrored.Filled.Message, "WhatsApp",
                             tint = SuccessGreen,
                             modifier = Modifier.size(22.dp)
                         )

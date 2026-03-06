@@ -136,4 +136,31 @@ object ValidationUtils {
 
         return errors
     }
+
+    /** Valida telefone: exige ao menos 10 dígitos (DDD + número). */
+    fun isValidPhone(phone: String): Boolean =
+        phone.filter { it.isDigit() }.length >= 10
+
+    /** Valida CEP: exige exatamente 8 dígitos. */
+    fun isValidCep(cep: String): Boolean =
+        cep.filter { it.isDigit() }.length == 8
+
+    /**
+     * Valida todos os campos do checkout de uma vez.
+     * @return mensagem de erro, ou null se tudo estiver ok.
+     */
+    fun validateCheckout(
+        name: String,
+        phone: String,
+        cep: String,
+        address: String,
+        city: String
+    ): String? = when {
+        name.trim().length < 3 -> "Informe seu nome completo (mínimo 3 caracteres)"
+        !isValidPhone(phone)   -> "Informe um telefone com DDD válido (ex: 65 9 9999-9999)"
+        !isValidCep(cep)       -> "CEP inválido — informe os 8 dígitos (ex: 78300-000)"
+        address.isBlank()      -> "Informe o endereço de entrega (rua e número)"
+        city.isBlank()         -> "Informe a cidade de entrega"
+        else                   -> null
+    }
 }

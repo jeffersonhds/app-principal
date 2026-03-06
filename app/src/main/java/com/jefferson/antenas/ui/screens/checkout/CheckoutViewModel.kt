@@ -1,6 +1,7 @@
 package com.jefferson.antenas.ui.screens.checkout
 
 import android.util.Log
+import com.jefferson.antenas.utils.ValidationUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FieldValue
@@ -91,6 +92,15 @@ class CheckoutViewModel @Inject constructor(
     fun preparePayment() {
         if (userRepository.currentUserId == null) {
             _uiState.update { it.copy(error = "Faça login antes de continuar com o pagamento.") }
+            return
+        }
+        val s = uiState.value
+        val fieldError = ValidationUtils.validateCheckout(
+            name = s.name, phone = s.phoneNumber, cep = s.cep,
+            address = s.address, city = s.city
+        )
+        if (fieldError != null) {
+            _uiState.update { it.copy(error = fieldError) }
             return
         }
         viewModelScope.launch {

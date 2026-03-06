@@ -31,27 +31,46 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.HomeRepairService
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.LiveTv
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Satellite
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -414,13 +433,7 @@ private fun ServicesTopBar(onBackClick: () -> Unit) {
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    "Voltar",
-                    tint = SignalOrange
-                )
-            }
+            Spacer(Modifier.width(16.dp))
             Text(
                 "Nossos Serviços",
                 color = TextPrimary,
@@ -821,7 +834,7 @@ private fun ServiceCard(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(
-                                Icons.Default.Chat,
+                                Icons.AutoMirrored.Filled.Chat,
                                 null,
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
@@ -1320,7 +1333,7 @@ private fun ServicesBottomCta(onClick: () -> Unit) {
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Icon(
-                        Icons.Default.Chat,
+                        Icons.AutoMirrored.Filled.Chat,
                         null,
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)

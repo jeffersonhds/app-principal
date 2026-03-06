@@ -3,6 +3,10 @@ package com.jefferson.antenas.ui.screens.checkout
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import com.jefferson.antenas.utils.EXPRESS_SHIPPING_COST
+import com.jefferson.antenas.utils.FREE_SHIPPING_THRESHOLD
+import com.jefferson.antenas.utils.PIX_DISCOUNT
+import com.jefferson.antenas.utils.STANDARD_SHIPPING_COST
 import com.jefferson.antenas.utils.WHATSAPP_PHONE
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -16,8 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,7 +52,7 @@ import java.net.URLEncoder
 private enum class PaymentMethod(val label: String, val icon: ImageVector, val detail: String) {
     CARD("Cartão de Crédito", Icons.Default.CreditCard, "Até 12x sem juros"),
     PIX("PIX", Icons.Default.QrCode, "5% de desconto à vista"),
-    WHATSAPP("WhatsApp", Icons.Default.Message, "Combinar pagamento direto")
+    WHATSAPP("WhatsApp", Icons.AutoMirrored.Filled.Message, "Combinar pagamento direto")
 }
 
 private enum class DeliveryOption(val label: String, val subtitle: String, val days: String) {
@@ -75,11 +79,11 @@ fun CheckoutScreen(
     var selectedDelivery by remember { mutableStateOf(DeliveryOption.STANDARD) }
 
     val deliveryCost = when {
-        selectedDelivery == DeliveryOption.EXPRESS -> 25.0
-        cartTotal >= 100.0 -> 0.0
-        else -> 15.0
+        selectedDelivery == DeliveryOption.EXPRESS -> EXPRESS_SHIPPING_COST
+        cartTotal >= FREE_SHIPPING_THRESHOLD -> 0.0
+        else -> STANDARD_SHIPPING_COST
     }
-    val pixDiscount = if (selectedPayment == PaymentMethod.PIX) cartTotal * 0.05 else 0.0
+    val pixDiscount = if (selectedPayment == PaymentMethod.PIX) cartTotal * PIX_DISCOUNT else 0.0
     val finalTotal = cartTotal - pixDiscount + deliveryCost
     val installment = finalTotal / 12.0
 
@@ -299,9 +303,9 @@ fun CheckoutScreen(
                 DeliveryOption.entries.forEach { option ->
                     val isSelected = selectedDelivery == option
                     val price = when {
-                        option == DeliveryOption.EXPRESS -> "R$ 25,00"
-                        cartTotal >= 100.0 -> "Grátis 🎉"
-                        else -> "R$ 15,00"
+                        option == DeliveryOption.EXPRESS -> EXPRESS_SHIPPING_COST.toCurrency()
+                        cartTotal >= FREE_SHIPPING_THRESHOLD -> "Grátis 🎉"
+                        else -> STANDARD_SHIPPING_COST.toCurrency()
                     }
                     DeliveryOptionCard(
                         option = option,
@@ -1071,7 +1075,7 @@ private fun CheckoutBottomBar(
                         when (selectedPayment) {
                             PaymentMethod.CARD -> Icons.Default.CreditCard
                             PaymentMethod.PIX -> Icons.Default.QrCode
-                            PaymentMethod.WHATSAPP -> Icons.Default.Message
+                            PaymentMethod.WHATSAPP -> Icons.AutoMirrored.Filled.Message
                         },
                         null,
                         tint = if (isEnabled) MidnightBlueStart else TextTertiary,

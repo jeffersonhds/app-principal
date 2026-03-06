@@ -28,21 +28,34 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -826,7 +839,7 @@ private fun FirmwareRow(
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             Icon(
-                Icons.Default.Chat,
+                Icons.AutoMirrored.Filled.Chat,
                 null,
                 tint = accentColor,
                 modifier = Modifier.size(16.dp)
@@ -909,7 +922,7 @@ private fun DownloadsHelpCard(onWhatsAppClick: () -> Unit) {
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.Chat,
+                            Icons.AutoMirrored.Filled.Chat,
                             null,
                             tint = SuccessGreen,
                             modifier = Modifier.size(24.dp)
@@ -953,7 +966,7 @@ private fun DownloadsHelpCard(onWhatsAppClick: () -> Unit) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
-                        Icons.Default.Chat,
+                        Icons.AutoMirrored.Filled.Chat,
                         null,
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)

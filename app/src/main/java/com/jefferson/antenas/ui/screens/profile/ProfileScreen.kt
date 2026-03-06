@@ -28,24 +28,43 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Message
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -201,7 +220,7 @@ fun ProfileScreen(
             onDismissRequest = { showLogoutDialog = false },
             containerColor = MidnightBlueCard,
             icon = {
-                Icon(Icons.Default.ExitToApp, null, tint = ErrorRed, modifier = Modifier.size(32.dp))
+                Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = ErrorRed, modifier = Modifier.size(32.dp))
             },
             title = {
                 Text("Sair da conta?", color = TextPrimary, fontWeight = FontWeight.Bold)
@@ -413,7 +432,7 @@ private fun ProfileContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             ProfileMenuItem(
-                icon = Icons.Default.Message,
+                icon = Icons.AutoMirrored.Filled.Message,
                 iconColor = SuccessGreen,
                 title = "Falar com Suporte",
                 subtitle = "Atendimento via WhatsApp",
@@ -423,7 +442,7 @@ private fun ProfileContent(
             )
             ProfileMenuDivider()
             ProfileMenuItem(
-                icon = Icons.Default.Help,
+                icon = Icons.AutoMirrored.Filled.Help,
                 iconColor = SatelliteBlue,
                 title = "Perguntas Frequentes",
                 subtitle = "Dúvidas sobre pedidos e produtos",
@@ -459,7 +478,7 @@ private fun ProfileContent(
             border = BorderStroke(1.dp, ErrorRed.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Icon(Icons.Default.ExitToApp, null, modifier = Modifier.size(18.dp))
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text("Sair da Conta", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
         }
@@ -682,7 +701,7 @@ private fun QuickActionsSection(
                 onClick = onFavoritesClick
             )
             QuickActionCard(
-                icon = Icons.Default.Message,
+                icon = Icons.AutoMirrored.Filled.Message,
                 label = "Suporte",
                 color = SuccessGreen,
                 modifier = Modifier.weight(1f),

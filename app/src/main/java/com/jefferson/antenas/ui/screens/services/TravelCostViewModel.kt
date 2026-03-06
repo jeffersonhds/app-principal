@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jefferson.antenas.domain.usecase.CalculateShippingUseCase
+import com.jefferson.antenas.utils.STORE_LAT
+import com.jefferson.antenas.utils.STORE_LON
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,9 +26,6 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
-
-private const val STORE_LAT = -13.5327
-private const val STORE_LON = -58.8189
 
 data class TravelCostUiState(
     val isCalculating: Boolean = false,

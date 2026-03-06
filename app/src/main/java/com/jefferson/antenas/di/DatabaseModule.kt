@@ -14,7 +14,17 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 // ── Migrations ────────────────────────────────────────────────────────────────
-// Versão 1 → 2: adicionada tabela cart_items para persistência do carrinho
+//
+// MIGRATION_1_2: criação da tabela cart_items
+//   - Motivo: persistência do carrinho no Room (antes era só em memória)
+//   - Colunas: productId (PK), name, price, quantity, imageUrl
+//
+// MIGRATION_2_3 (template — use quando a versão do AppDatabase subir para 3):
+// val MIGRATION_2_3 = object : Migration(2, 3) {
+//     override fun migrate(database: SupportSQLiteDatabase) {
+//         // Exemplo: database.execSQL("ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0")
+//     }
+// }
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
